@@ -1,0 +1,288 @@
+body {
+  background: #B1BFC8;
+  overflow-x: hidden; }
+
+.car {
+  max-width: 518px;
+  position: relative;
+  margin-left: 10vw;
+  transform: scale(0.5);
+  margin-top: 30vh; }
+  .car .body {
+    -webkit-animation: car 1s infinite;
+    animation: car 1s infinite; }
+    .car .body .top {
+      display: flex;
+      align-items: baseline;
+      justify-content: flex-start;
+      padding-left: 157px; }
+      .car .body .top .glass, .car .body .top .back {
+        height: 66px;
+        border: 10px solid #0B133A;
+        border-bottom: 0px; }
+      .car .body .top .glass {
+        background: #B0DFE8;
+        position: relative; }
+        .car .body .top .glass:before {
+          content: ' ';
+          position: absolute;
+          width: 12px;
+          height: 26px;
+          border: 10px solid #0B133A;
+          background: #B8BEB4; }
+        .car .body .top .glass.front {
+          width: 115px;
+          transform: skewX(20deg) translateX(-25px); }
+          .car .body .top .glass.front:before {
+            transform: skewX(-20deg);
+            right: -30px;
+            bottom: -30px; }
+        .car .body .top .glass.side {
+          width: 60px; }
+          .car .body .top .glass.side:before {
+            bottom: -26px;
+            z-index: 1;
+            left: calc(50% - 18px); }
+      .car .body .top .back {
+        border-right-width: 0px;
+        width: 15px;
+        background-color: #F6F8F3; }
+    .car .body .base {
+      display: flex;
+      height: 97px;
+      align-items: baseline;
+      justify-content: flex-start; }
+      .car .body .base > div {
+        border: 10px solid #0B133A;
+        background-color: #F6F8F3;
+        height: calc(100% - 20px); }
+        .car .body .base > div:not(:last-child) {
+          border-right-width: 0px; }
+      .car .body .base .guard {
+        width: 12px;
+        height: 16px;
+        background-color: #B8BEB4;
+        border-top-left-radius: 10px; }
+      .car .body .base .trunk {
+        width: 125px;
+        display: flex;
+        justify-content: center;
+        align-self: center;
+        align-items: flex-end; }
+      .car .body .base .mudguard {
+        height: 57px;
+        width: 33%;
+        min-width: 41px;
+        background: #0B133A;
+        position: relative;
+        border-radius: 10px 10px 0 0; }
+        .car .body .base .mudguard:before, .car .body .base .mudguard:after {
+          content: ' ';
+          position: absolute;
+          width: 100%;
+          height: 102%;
+          border-radius: 10px 10px 0 0;
+          transform-origin: top center;
+          background: inherit;
+          top: -1px; }
+        .car .body .base .mudguard:before {
+          transform: skewX(40deg); }
+        .car .body .base .mudguard:after {
+          transform: skewX(-40deg); }
+      .car .body .base .door {
+        width: 80px;
+        position: relative; }
+        .car .body .base .door:before {
+          content: ' ';
+          position: absolute;
+          width: 100%;
+          background: #0B133A;
+          height: 10px;
+          bottom: 16px; }
+      .car .body .base .bonnet-side {
+        width: 90px;
+        position: relative;
+        display: flex;
+        align-self: center;
+        justify-content: center;
+        align-items: flex-end; }
+      .car .body .base .bonnet {
+        width: 118px;
+        padding: 0 10px;
+        display: flex;
+        justify-content: center;
+        align-self: center;
+        align-items: flex-start;
+        position: relative;
+        z-index: 1; }
+        .car .body .base .bonnet:before {
+          content: ' ';
+          position: absolute;
+          width: calc(100% - 20px);
+          background: #0B133A;
+          border-radius: 10px;
+          height: 36px;
+          z-index: 2;
+          top: 6px; }
+        .car .body .base .bonnet:after {
+          content: ' ';
+          position: absolute;
+          border: inherit;
+          width: 115%;
+          height: 16px;
+          background: #B8BEB4;
+          left: -10px;
+          bottom: -10px;
+          border-top-right-radius: 10px; }
+        .car .body .base .bonnet .light {
+          height: 15px;
+          flex-basis: 6px;
+          background-color: black;
+          margin: 0 7px;
+          background-color: #486F81;
+          z-index: 3;
+          margin-top: 16px; }
+          .car .body .base .bonnet .light:first-child, .car .body .base .bonnet .light:last-child {
+            flex-grow: 3;
+            background-color: #DDCEA1; }
+          .car .body .base .bonnet .light:nth-child(2n) {
+            flex-grow: 1.5; }
+  .car .wheels {
+    width: 315px;
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    bottom: -60px; }
+    .car .wheels.front {
+      left: 38px; }
+    .car .wheels.back {
+      z-index: -1;
+      right: 40px; }
+      .car .wheels.back .wheel {
+        background: #0B133A;
+        border-color: #0B133A; }
+        .car .wheels.back .wheel:before {
+          width: 0px; }
+  .car .wheel {
+    border-radius: 50%;
+    width: 85px;
+    height: 85px;
+    border: 10px solid #0B133A;
+    display: inline-block;
+    background-color: #486F81;
+    position: relative;
+    -webkit-animation: rota 2s infinite;
+    animation: rota 2s infinite; }
+    .car .wheel:before {
+      content: ' ';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border: inherit;
+      top: calc(50% - 21px);
+      left: calc(50% - 21px);
+      background: white;
+      border-radius: 50%; }
+
+.road {
+  background: inherit;
+  width: 300vw;
+  height: 40vh;
+  border-top: 6px solid #0B133A;
+  border-radius: 5px;
+  position: relative;
+  margin-top: -19px;
+  -webkit-animation: move 10s linear infinite;
+  animation: move 10s linear infinite;
+  transform: scale(0.5); }
+
+.earth-elements {
+  display: flex;
+  flex-flow: row wrap;
+  flex-basis: 57px;
+  width: 518px;
+  height: 182px;
+  margin-left: 150vw;
+  transform: scale(0.5); }
+  .earth-elements .element {
+    height: 18px;
+    border-radius: 12px; }
+    .earth-elements .element.m {
+      flex-basis: 85.5px;
+      max-width: 85.5px; }
+    .earth-elements .element.l {
+      flex-basis: 156.75px;
+      max-width: 156.75px; }
+    .earth-elements .element.s {
+      flex-basis: 57px;
+      max-width: 57px; }
+    .earth-elements .element.xs {
+      flex-basis: 16px;
+      max-width: 16px; }
+    .earth-elements .element.light {
+      background-color: #486F7F; }
+    .earth-elements .element.dark {
+      background-color: #0B133A; }
+    .earth-elements .element:nth-child(1) {
+      margin-right: 30px; }
+    .earth-elements .element:nth-child(2) {
+      margin-right: 55px; }
+    .earth-elements .element:nth-child(3) {
+      margin-right: 75px; }
+    .earth-elements .element:nth-child(5) {
+      margin-left: 58px;
+      margin-right: 50px; }
+    .earth-elements .element:nth-child(6) {
+      margin-right: 50px; }
+    .earth-elements .element:nth-child(7) {
+      margin-right: 60px; }
+    .earth-elements .element:nth-child(8) {
+      margin-left: 80px;
+      margin-right: 80px; }
+    .earth-elements .element:nth-child(9) {
+      margin-right: 20px; }
+
+@-webkit-keyframes move {
+  0% {
+    transform: translateX(0); }
+  100% {
+    transform: translateX(-200vw); } }
+@keyframes move {
+  0% {
+    transform: translateX(0); }
+  100% {
+    transform: translateX(-200vw); } }
+@-webkit-keyframes rota {
+  0% {
+    transform: rotate(0deg); }
+  100% {
+    transform: rotate(360deg); } }
+@keyframes rota {
+  0% {
+    transform: rotate(0deg); }
+  100% {
+    transform: rotate(360deg); } }
+@-webkit-keyframes car {
+  0% {
+    transform: translateY(0px); }
+  25% {
+    transform: translateY(1px); }
+  50% {
+    transform: translateY(0px); }
+  75% {
+    transform: translateY(2px); }
+  100% {
+    transform: translateY(0px); } }
+@keyframes car {
+  0% {
+    transform: translateY(0px); }
+  25% {
+    transform: translateY(1px); }
+  50% {
+    transform: translateY(0px); }
+  75% {
+    transform: translateY(2px); }
+  100% {
+    transform: translateY(0px); } }
+
+/*# sourceMappingURL=road.css.map */
