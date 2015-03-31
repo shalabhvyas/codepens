@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,oBAAoB;EACnB,KAAK,EAAC,IAAI;EACV,MAAM,EAAC,IAAI;EACX,MAAM,EAAC,IAAI",
+"sources": ["infographic.scss"],
+"names": [],
+"file": "infographic.css"
+}
