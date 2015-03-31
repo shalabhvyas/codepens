@@ -2,4 +2,9 @@
 	width:25vw;
 	height:25vw;
 	margin:auto;
+
+	.outer-group{
+		transform-origin: 50% 50%;
+		transition: transform 2s;
+	}
 }

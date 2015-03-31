@@ -1,6 +1,6 @@
 {
 "version": 3,
-"mappings": "AAAA,oBAAoB;EACnB,KAAK,EAAC,IAAI;EACV,MAAM,EAAC,IAAI;EACX,MAAM,EAAC,IAAI",
+"mappings": "AAAA,oBAAoB;EACnB,KAAK,EAAC,IAAI;EACV,MAAM,EAAC,IAAI;EACX,MAAM,EAAC,IAAI;EAEX,iCAAY;IACX,gBAAgB,EAAE,OAAO;IACzB,UAAU,EAAE,YAAY",
 "sources": ["infographic.scss"],
 "names": [],
 "file": "infographic.css"
