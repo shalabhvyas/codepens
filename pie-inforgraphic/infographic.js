@@ -3,6 +3,7 @@ function PieInfographic(stats) {
 	this.render = render;
 	this.currentPie = 0;
 	this._angles = {};
+	this._pathNodes = [];
 
 	function render(parentEl) {
 
@@ -11,9 +12,7 @@ function PieInfographic(stats) {
 		var svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
 			parentGroupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
 			svgDimensions, center, radius,
-			baseAngle, arcStartPoint, arcEndPoint,
-			expandedAngle, expArcStartPoint, expArcEndPoint,
-			shrunkAngle, shrArcStartPoint, shrArcEndPoint;
+			baseAngle, expandedAngle, shrunkAngle;
 
 		svgEl.setAttribute('style', 'width:100%;height:100%');
 
@@ -43,175 +42,176 @@ function PieInfographic(stats) {
 		self._angles.expandedAngle = expandedAngle;
 		self._angles.shrunkAngle = shrunkAngle;
 
-
-		//Draw all the arcs baselined on X-axis.
-		arcStartPoint = _polarToCartesian(center,radius,baseAngle/2);
-		arcEndPoint = _polarToCartesian(center,radius,-baseAngle/2);		
-		
-		//Calculating co-ordinates when an arc is expanded
-		expArcStartPoint = _polarToCartesian(center,radius*1.025,expandedAngle / 2);
-		expArcEndPoint = _polarToCartesian(center,radius*1.025,-expandedAngle / 2);
-
-		var intermediateExpArcStartPoint = _polarToCartesian(center,radius,expandedAngle/4),
-		intermediateExpArcEndPoint = _polarToCartesian(center,radius,-expandedAngle/4);
-
-		shrArcStartPoint = _polarToCartesian(center,radius,shrunkAngle / 2);
-		shrArcEndPoint = _polarToCartesian(center,radius,-shrunkAngle / 2);
-	
-		//Create pie shape definition
-		var pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path'),
-			pathPoints = _getPointsForPie(center, radius, arcStartPoint, arcEndPoint);
-
-		pathEl.setAttribute('d', pathPoints);
-
-		//Create pie-expansion animation
-		var animExpand = _createAnimElement('animate', {
-			'attributeName': 'd',
-			'attributeType': 'XML',
-			'dur': '2s',
-			'begin': 'indefinite',
-			'fill': 'freeze',
-			'to': _getPointsForPie(center, radius, expArcStartPoint, expArcEndPoint),			
-			'data-action': 'expand'
-		});
-
-		var animShrink = animExpand.cloneNode(true);
-		animShrink.setAttribute('to', _getPointsForPie(center, radius, shrArcStartPoint, shrArcEndPoint));
-		animShrink.setAttribute('dur', '5s');
-		animShrink.setAttribute('data-action', 'shrink');
-
-
-		var animNormal = animExpand.cloneNode(true);
-		animNormal.setAttribute('to', _getPointsForPie(center, radius, arcStartPoint, arcEndPoint));
-		animNormal.setAttribute('dur', '0.005s');
-		animNormal.setAttribute('data-action', 'normal');
-
-		pathEl.appendChild(animExpand);
-		pathEl.appendChild(animShrink);
-		pathEl.appendChild(animNormal);
-
-		for (var i = 0; i < stats.length; i++) {
-			var arcGroupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-			arcGroupEl.appendChild(pathEl.cloneNode(true));
-			arcGroupEl.setAttribute('fill', stats[i].color);
-			arcGroupEl.setAttribute('transform', 'rotate(' + ((i * baseAngle) * 180 / Math.PI) + ' ' + center.x + ' ' + center.y + ')');
-			arcGroupEl.setAttribute('data-state', 'normal'); //Could be normal,expanded or shrunk.
-
-			var textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-			textEl.innerHTML = "#"+(i+1);
-			textEl.setAttribute('fill','black');
-			textEl.setAttribute('x', center.x + radius/2);
-			textEl.setAttribute('y', center.y);
-
-
-			arcGroupEl.appendChild(textEl);
-
-			arcGroupEl.addEventListener('click', _handleClickOnPie);
-
-			parentGroupEl.appendChild(arcGroupEl);
-		}
-
-		/*
-			Animation order:
-			Rotate the pie to bring the clicked pie on the right,centered.
-			Expand the clicked pie and shrink the other pies together. (Sync the animations with times)
-			Keep the text un-rotated in the individual pies        	
-		*/
-
-		function _handleClickOnPie(event) {
-
-			var pieEl = event.currentTarget,
-				allPies = pieEl.parentNode.childNodes,
-				state = pieEl.getAttribute('data-state'),
-				angleFrom = self._angles.groupRotationAngle || 0,
-				angleTo;
-
-			if (['normal', 'shrunk'].indexOf(state) !== -1) {
-
-				self.currentPie = Array.prototype.indexOf.call(pieEl.parentNode.childNodes, pieEl);
-
-				//Bring all pies to normal size
-				for (var i=0;i<allPies.length;i++) {
-					_actionOnPie(allPies[i], 'normal');
-				}
-
-				//Wait for 1500ms for pies to return to normal state.
-				setTimeout(function() {
-
-					angleTo = (-1 * _getRotationAngleForPie(self.currentPie, 'normal'));
-
-					angleTo += Math.ceil(angleFrom / 360) * 360;
-
-					if (angleTo > angleFrom)
-						angleTo -= 360; //angleTo should always be less than angleFrom for a anti-clockwise rotation.
-
-
-					pieEl.parentNode.addEventListener('transitionend', function(event) {
-						
-						
-						//Expand the pie clicked.
-						_actionOnPie(pieEl, 'expand');
-
-					
-						//Shrink all other pies.
-						for (var otherPie = allPies[0]; otherPie; otherPie = otherPie.nextSibling) {
-							if (otherPie !== pieEl && otherPie.tagName === 'g') {
-								_actionOnPie(otherPie, 'shrink');
-							}
-						}
-
-						event.target.removeEventListener(event.type, arguments.callee);
-					});
-
-
-					//Rotate the entire graphic to align the clicked pie with the X-axis.
-					pieEl.parentNode.style.transform = 'rotate(' + (angleTo) + 'deg)';
-					self._angles.groupRotationAngle = angleTo;
-
-				}, 250);
-
-				
-
-			}
-		}
-
-		function _actionOnPie(pie, action) {
-
-			var anim = pie.querySelector('animate[data-action="' + action + '"]'),
-				indexInParent = Array.prototype.indexOf.call(pie.parentNode.childNodes, pie),
-				currentState = pie.getAttribute('data-state');
-
-			if((currentState === 'expanded' && action === 'expand') ||
-				(currentState === 'shrunk' && action === 'shrink') ||
-				(currentState === 'normal' && action === 'normal'))
-				return;	
-
-			var animRotatePieEl = _createAnimElement('animateTransform', {
-				'attributeName': 'transform',
-				'attributeType': 'XML',
-				'type': 'rotate',
-				'repeatCount': 1,
-				'dur': anim.getAttribute('dur'),
-				'fill': 'freeze',
-				'to': _getRotationAngleForPie(indexInParent, action) + ' ' + center.x + ' ' + center.y
+		for(var i=0; i<stats.length;i++){
+			var pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+			pathEl.setAttribute('fill', stats[i].color);
+			
+			pathEl.addEventListener('click',function(event){
+				_performAction('expand', self._pathNodes.indexOf(event.target));
 			});
 
-			pie.appendChild(animRotatePieEl);
+			this._pathNodes.push(parentGroupEl.appendChild(pathEl));			
+		}
 
-			if (anim) {
-				anim.beginElement();
+		_performAction('normal');
+
+		function _performAction(state,index){
+
+			var arcPositions = [];
+
+			if(state === 'normal'){
+				arcPositions = _getArcPositionsForState(state);
+			} else if(state === 'expand'){
+				arcPositions = _getArcPositionsForState(state,index);
 			}
 
-			if (action === 'expand') {
-				pie.setAttribute('data-state', 'expanded');
-			} else if (action === 'shrink') {
-				pie.setAttribute('data-state', 'shrunk');
-			} else if (action === 'normal') {
-				pie.setAttribute('data-state', 'normal');
+			if(state === 'normal'){
+			
+				for(var i=0; i< self._pathNodes.length;i++){
+			
+					//TODO: Animate with some durations/easing here.
+					_animateTo(self._pathNodes[i],arcPositions[i], (state === 'normal')? 0:1);					
+
+					//Set the data attribute for state
+					if(state === 'normal')
+						self._pathNodes[i].setAttribute('data-state',state);
+					else if(state === 'expand' && i === index)			
+						self._pathNodes[i].setAttribute('data-state',state);
+					else
+						self._pathNodes[i].setAttribute('data-state','shrink');
+				}
+			
+			} else{
+
+				var targetAngles = [],
+				increments = [];
+
+				for(var i=0; i< arcPositions.length; i++){
+					
+					targetAngles.push([
+						_cartesianToPolar(center,arcPositions[i][0]).theta,
+						_cartesianToPolar(center,arcPositions[i][1]).theta
+					]);
+
+					//Calculating first set of increments
+					increments.push(_getNextIncrement(self._pathNodes[i],targetAngles[i]));
+				}
+
+
+				function drawIncrement(){
+					
+					for (var i = 0; i < increments.length; i++) {
+						if(increments[i] !== null)
+							self._pathNodes[i].setAttribute('d', increments[i]);
+					};
+
+					console.log('Drew one increment');
+
+					increments = [];
+					var nextFrameRequestNeeded = false;
+
+					//Get the next set of increments
+					for(i=0; i < self._pathNodes.length; i++){
+						
+						increments.push(_getNextIncrement(self._pathNodes[i],targetAngles[i]));
+
+						if(increments[i] !== null){
+							nextFrameRequestNeeded = true;
+						}
+					}
+
+					//if increments has one non-null entry
+					if(nextFrameRequestNeeded)
+						window.requestAnimationFrame(drawIncrement);
+				}
+
+				window.requestAnimationFrame(drawIncrement);
 			}
 		}
 
-		function _getPointsForPie(center, radius, startPoint, endPoint) {
+
+		//Calculate arc start-end positions for each pie based on the state.
+		function _getArcPositionsForState(state,index){
+
+			var arcPositions = [],angleOffset;
+
+			if(state === 'normal'){
+
+					angleOffset = self._angles.baseAngle/2;
+					
+					for(var i=0;i<stats.length;i++){
+						arcPositions.push([
+							_polarToCartesian(center,radius,angleOffset),
+							_polarToCartesian(center,radius,angleOffset - baseAngle)
+						]);
+						angleOffset-=baseAngle;
+					}
+
+			}else if(state === 'expand'){
+					index = index || 0;
+
+					if(index === 0){
+						angleOffset = self._angles.expandedAngle/2;
+					}else{
+						angleOffset = self._angles.shrunkAngle/2;
+					}
+
+					for(var i=0;i<stats.length;i++){
+
+						var arcPoints = [ _polarToCartesian(center,radius,angleOffset) ]; //Pushing the start point
+
+						if(i === index){
+							arcPoints.push(_polarToCartesian(center,radius,angleOffset - expandedAngle));
+							angleOffset -= expandedAngle;
+						}else{
+							arcPoints.push(_polarToCartesian(center,radius,angleOffset - shrunkAngle));
+							angleOffset -= shrunkAngle;
+						}
+						arcPositions.push(arcPoints);
+					}
+			}
+
+			return arcPositions;
+		}
+
+		function _animateTo(el,arcPoints,duration){
+			if(duration <=0){
+				el.setAttribute('d',_getPathDescForArcPositions(center,radius,arcPoints[0],arcPoints[1]));
+				return;
+			}
+		}
+
+		function _getNextIncrement(el,targetAngles){
+			
+			var currentArcPoints = _getArcCoordinates(el);
+			var sourceAngles = [ _cartesianToPolar(center,currentArcPoints[0]).theta,
+				_cartesianToPolar(center,currentArcPoints[1]).theta
+			];
+
+			if(Math.abs(targetAngles[0] - sourceAngles[0]) <= Math.pow(10,-10)  && 
+				Math.abs(targetAngles[1] - sourceAngles[1]) <= Math.pow(10,-10)){
+				//If source and target angles are equal to precision of 10 decimals, stop the increments.
+				return null;
+			}
+
+			if(sourceAngles[0] < targetAngles[0])
+				sourceAngles[0] = Math.min(sourceAngles[0]+0.1,targetAngles[0]);
+			else if(sourceAngles[0] > targetAngles[0])
+				sourceAngles[0] = Math.max(sourceAngles[0]-0.1,targetAngles[0]);
+
+			if(sourceAngles[1] < targetAngles[1])
+				sourceAngles[1] = Math.min(sourceAngles[1]+0.1,targetAngles[1]);
+			else if(sourceAngles[1] > targetAngles[1])
+				sourceAngles[1] = Math.max(sourceAngles[1]-0.1,targetAngles[1]);
+
+			return _getPathDescForArcPositions(center,radius,
+					_polarToCartesian(center,radius,sourceAngles[0]),
+					_polarToCartesian(center,radius,sourceAngles[1]));	
+
+		}
+		
+
+		function _getPathDescForArcPositions(center, radius, startPoint, endPoint) {
 			var points = 'M' + center.x + ',' + center.y;
 
 			points += ' L ' + startPoint.x + ' ' + startPoint.y;
@@ -219,44 +219,11 @@ function PieInfographic(stats) {
 			points += ' A ' + radius + ' ' + radius +
 				' 1 0 1 ' + endPoint.x + ' ' + endPoint.y;
 
-			points += ' M ' + endPoint.x + ' ' + endPoint.y;
+			//points += ' M ' + endPoint.x + ' ' + endPoint.y;
 			points += ' L ' + center.x + ' ' + center.y;
 			points += ' Z';
 
 			return points;
-		}
-
-		//Calculate angle for pie at an index with the given target state based on current expanded pie.
-		function _getRotationAngleForPie(index, targetState) {
-			var baseOffset = 0,
-				angle;
-
-			if (targetState === 'shrink')
-				baseOffset = self._angles.shrunkAngle / 2;
-			else if (targetState === 'expand')
-				baseOffset = self._angles.expandedAngle / 2;
-			else if (targetState === 'normal')
-				baseOffset = self._angles.baseAngle / 2;
-
-			if (targetState === 'normal') {
-				baseOffset -= self._angles.baseAngle / 2;
-			} else if (self.currentPie === 0) {
-				baseOffset -= self._angles.expandedAngle / 2;
-			} else {
-				baseOffset -= self._angles.shrunkAngle / 2;
-			}
-
-			angle = baseOffset;
-
-			if (targetState === 'normal') {
-				angle += index * self._angles.baseAngle;
-			} else if (index <= self.currentPie) {
-				angle += index * self._angles.shrunkAngle
-			} else {
-				angle += (index - 1) * self._angles.shrunkAngle + self._angles.expandedAngle;
-			}
-
-			return angle * 180 / Math.PI;
 		}
 
 		function _createAnimElement(tag, attrs) {
@@ -271,6 +238,46 @@ function PieInfographic(stats) {
 				x: center.x + (Math.cos(angle) * radius),
 				y: center.y - (Math.sin(angle) * radius)	
 			};	
+		}
+
+		function _cartesianToPolar(center,point){
+
+			var theta = Math.atan2(point.y - center.y,point.x - center.x);
+
+			if(theta > 0)
+				theta *= -1; 
+			else if(theta < 0)
+				theta = -1 * (2*Math.PI + theta);
+
+			return {
+				r: radius,
+				theta: theta
+			};	
+		}
+
+		function _getArcCoordinates(pathEl){
+			var desc = pathEl.getAttribute('d'),
+			startPoints = desc.split('L ')[1].split(' A')[0].split(' '),
+			endPoints = desc.split('1 0 1 ')[1].split(' L')[0].split(' ');
+
+			return [{
+				x: parseFloat(startPoints[0]),
+				y: parseFloat(startPoints[1])
+			},{
+				x: parseFloat(endPoints[0]),
+				y: parseFloat(endPoints[1])
+			}];
+		}
+
+		function _getArcAngleForState(state){
+			if(state === 'normal')
+				return self._angles.baseAngle;
+			else if(state === 'expand')
+				return self._angles.expandedAngle;
+			else if(state === 'shrink')
+				return self._angles.shrunkAngle;
+
+			return null;
 		}
 
 
