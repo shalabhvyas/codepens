@@ -138,7 +138,9 @@ function PieInfographic(stats) {
 					]);
 
 					//Calculating first set of increments
-					increments.push(self._getNextIncrement(self._pathNodes[i],targetAngles[i]));
+					increments.push(self._getNextIncrement(self._pathNodes[i],
+							targetAngles[i],
+						(i === index)? radius*1.05 : null));
 				}
 
 
@@ -149,15 +151,15 @@ function PieInfographic(stats) {
 							self._pathNodes[i].setAttribute('d', increments[i]);
 					};
 
-					console.log('Drew one increment');
-
 					increments = [];
 					var nextFrameRequestNeeded = false;
 
 					//Get the next set of increments
 					for(i=0; i < self._pathNodes.length; i++){
 						
-						increments.push(self._getNextIncrement(self._pathNodes[i],targetAngles[i]));
+						increments.push(self._getNextIncrement(self._pathNodes[i],
+							targetAngles[i],
+							(i === index)? radius*1.05 : null));
 
 						if(increments[i] !== null){
 							nextFrameRequestNeeded = true;
@@ -240,11 +242,11 @@ function PieInfographic(stats) {
 			return arcPositions;
 		}
 
-		function _getNextIncrement(el,targetAngles){
+		function _getNextIncrement(el,targetAngles,targetRadius){
 			
 			var self = this,
 			center = self._center,
-			radius = self._radius,
+			radius = targetRadius || self._radius,
 			pieTargetAngles = [];
 			currentArcPoints = _getArcCoordinates(el);
 
