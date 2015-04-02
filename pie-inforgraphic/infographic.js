@@ -8,6 +8,7 @@ function PieInfographic(stats) {
 	this._center = 0;
 	this._radius = 0;
 	this._performAction = _performAction;
+	this._rotateGraphicToPie = _rotateGraphicToPie;
 	this._getArcPositionsForState = _getArcPositionsForState;
 	this._setDataAttributes = _setDataAttributes;
 	this._getNextIncrement = _getNextIncrement;
@@ -44,8 +45,6 @@ function PieInfographic(stats) {
 		self._center = center;
 		self._radius = radius;
 
-
-
 		baseAngle = 2 * Math.PI / this.stats.length;
 		expandedAngle = Math.min(2 * Math.PI - (0.15 * Math.PI * this.stats.length), baseAngle * 4, Math.PI); //Pie, on expansion to 3 times, should leave atleast 36 degrees for each other pie, and cannot be more than 180 degrees.
 		shrunkAngle = (2 * Math.PI - expandedAngle) / (stats.length - 1); //Angle when a pie is shrunk
@@ -59,11 +58,15 @@ function PieInfographic(stats) {
 			pathEl.setAttribute('fill', stats[i].color);
 			
 			pathEl.addEventListener('click',function(event){
-					self._performAction('normal');
-					
-					//Rotate the graphic here.
-					
-					self._performAction('expand', self._pathNodes.indexOf(event.target));
+
+					//Bring all pies to normal state
+					self._performAction('normal', -1, function(){
+						//Rotate the graphic to center the clicked pie.
+						self._rotateGraphicToPie(self._pathNodes.indexOf(event.target),function(){
+							//Expand/shrink pies based on the clicked pie.
+							self._performAction('expand', self._pathNodes.indexOf(event.target),null);	
+						});
+					});
 			});
 
 			this._pathNodes.push(parentGroupEl.appendChild(pathEl));			
@@ -72,7 +75,35 @@ function PieInfographic(stats) {
 		this._performAction('normal');		
 	}
 
-	function _performAction(state,index){
+	function _rotateGraphicToPie(index,callback){
+		var parentGroupEl = this._pathNodes[0].parentNode.parentNode,
+		angleFrom  = parseFloat(parentGroupEl.getAttribute('data-offset-angle')) || 0,
+		angleTo = -1 * (index * this._angles.baseAngle * 180/ Math.PI);
+
+		if(angleFrom === angleTo){
+			if(callback)
+				callback();
+		}
+
+		angleTo += Math.ceil(angleFrom/360)*360;
+
+		if(angleTo > angleFrom)
+			angleTo -= 360; //angleTo should always be less than angleFrom for a anti-clockwise rotation.
+
+		if(callback)
+			parentGroupEl.addEventListener('transitionend',function(event){
+				callback();
+				event.target.removeEventListener(event.type, arguments.callee);
+			});
+
+		parentGroupEl.style.transform = 'rotate(' + (angleTo) + 'deg)';
+
+		parentGroupEl.setAttribute('data-offset-angle',angleTo);
+	}
+
+
+
+	function _performAction(state,index,callback){
 
 			var self = this,
 			center = self._center,
@@ -89,6 +120,9 @@ function PieInfographic(stats) {
 				}	
 				
 				self._setDataAttributes(state,index);
+
+				if(callback)
+					callback();
 
 			} else{
 
@@ -133,8 +167,11 @@ function PieInfographic(stats) {
 					//if increments has one non-null entry
 					if(nextFrameRequestNeeded)
 						window.requestAnimationFrame(drawIncrement);
-					else
-						self._setDataAttributes(state,index);					
+					else{
+						self._setDataAttributes(state,index);
+						if(callback)
+							callback();
+					}
 				}
 
 				window.requestAnimationFrame(drawIncrement);
@@ -171,7 +208,8 @@ function PieInfographic(stats) {
 					if(index === 0){
 						angleOffset = self._angles.expandedAngle/2;
 					}else{
-						angleOffset = self._angles.shrunkAngle/2;
+						angleOffset = -1 * (index * baseAngle);
+						angleOffset += expandedAngle/2 + index * shrunkAngle;
 					}
 
 					for(var i=0;i<stats.length;i++){
@@ -179,11 +217,21 @@ function PieInfographic(stats) {
 						var arcPoints = [ _polarToCartesian(center,radius,angleOffset) ]; //Pushing the start point
 
 						if(i === index){
-							arcPoints.push(_polarToCartesian(center,radius,angleOffset - expandedAngle));
 							angleOffset -= expandedAngle;
+
+							if(angleOffset < -2 * Math.PI)
+								angleOffset += 2 * Math.PI;
+
+							arcPoints.push(_polarToCartesian(center,radius,angleOffset));
+							
 						}else{
-							arcPoints.push(_polarToCartesian(center,radius,angleOffset - shrunkAngle));
 							angleOffset -= shrunkAngle;
+
+							if(angleOffset < -2*Math.PI)
+								angleOffset += -2*Math.PI;
+
+							arcPoints.push(_polarToCartesian(center,radius,angleOffset));
+							
 						}
 						arcPositions.push(arcPoints);
 					}
@@ -197,27 +245,61 @@ function PieInfographic(stats) {
 			var self = this,
 			center = self._center,
 			radius = self._radius,
+			pieTargetAngles = [];
 			currentArcPoints = _getArcCoordinates(el);
+
+			Array.prototype.push.apply(pieTargetAngles,targetAngles)
 			
 			var sourceAngles = [ _cartesianToPolar(center,currentArcPoints[0]).theta,
 				_cartesianToPolar(center,currentArcPoints[1]).theta
-			];
+			];			
 
-			if(Math.abs(targetAngles[0] - sourceAngles[0]) <= Math.pow(10,-10)  && 
-				Math.abs(targetAngles[1] - sourceAngles[1]) <= Math.pow(10,-10)){
+			if(Math.abs(pieTargetAngles[0] - sourceAngles[0]) <= Math.pow(10,-10)  && 
+				Math.abs(pieTargetAngles[1] - sourceAngles[1]) <= Math.pow(10,-10)){
 				//If source and target angles are equal to precision of 10 decimals, stop the increments.
 				return null;
 			}
 
-			if(sourceAngles[0] < targetAngles[0])
-				sourceAngles[0] = Math.min(sourceAngles[0]+0.1,targetAngles[0]);
-			else if(sourceAngles[0] > targetAngles[0])
-				sourceAngles[0] = Math.max(sourceAngles[0]-0.1,targetAngles[0]);
+			if(el.getAttribute('fill') === "#5793F3"){
+				console.log('Source Angles before: + ' + sourceAngles[0]  + ',' + sourceAngles[1] + 
+					'Target Angles before: + ' + pieTargetAngles[0]  + ',' + pieTargetAngles[1]);
+			}
 
-			if(sourceAngles[1] < targetAngles[1])
-				sourceAngles[1] = Math.min(sourceAngles[1]+0.1,targetAngles[1]);
-			else if(sourceAngles[1] > targetAngles[1])
-				sourceAngles[1] = Math.max(sourceAngles[1]-0.1,targetAngles[1]);
+
+			//Calculate shorter route to the targetAngles.
+			if(Math.abs(pieTargetAngles[0] - sourceAngles[0]) > Math.PI){
+				if(pieTargetAngles[0] < sourceAngles[0])
+					pieTargetAngles[0] += 2 * Math.PI;
+				else
+					sourceAngles[0] += 2 * Math.PI;
+			}
+
+			if(Math.abs(pieTargetAngles[1] - sourceAngles[1]) > Math.PI){
+				if(pieTargetAngles[1] < sourceAngles[1])
+					pieTargetAngles[1] += 2 * Math.PI;
+				else
+					sourceAngles[1] += 2 * Math.PI;
+			}	
+				
+			
+			
+
+			if(el.getAttribute('fill') === "#5793F3"){
+				console.log('Source Angles after: + ' + sourceAngles[0]  + ',' + sourceAngles[1] + 
+					'Target Angles after: + ' + pieTargetAngles[0]  + ',' + pieTargetAngles[1]);
+			}
+
+
+
+			if(sourceAngles[0] < pieTargetAngles[0])
+				sourceAngles[0] = Math.min(sourceAngles[0]+0.1,pieTargetAngles[0]);
+			else if(sourceAngles[0] > pieTargetAngles[0])
+				sourceAngles[0] = Math.max(sourceAngles[0]-0.1,pieTargetAngles[0]);
+
+			if(sourceAngles[1] < pieTargetAngles[1])
+				sourceAngles[1] = Math.min(sourceAngles[1]+0.1,pieTargetAngles[1]);
+			else if(sourceAngles[1] > pieTargetAngles[1])
+				sourceAngles[1] = Math.max(sourceAngles[1]-0.1,pieTargetAngles[1]);
 
 			return _getPathDescForArcPositions(center,radius,
 					_polarToCartesian(center,radius,sourceAngles[0]),

@@ -4,10 +4,10 @@
 	margin:auto;
 
 	svg{
-		border:1px solid black;
+		//border:1px solid black;
 	}
 
-	.outer-group{
+	svg{
 		transform-origin: 50% 50%;
 		transition: transform 2s;
 		width: 100%;
