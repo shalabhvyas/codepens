@@ -11,7 +11,7 @@ function PieInfographic(stats) {
 	this._rotateGraphicToPie = _rotateGraphicToPie;
 	this._getArcPositionsForState = _getArcPositionsForState;
 	this._setDataAttributes = _setDataAttributes;
-	this._getNextIncrement = _getNextIncrement;
+	this._getNextIncrement = _getNextIncrement;	
 
 	function render(parentEl) {
 
@@ -31,13 +31,13 @@ function PieInfographic(stats) {
 		}
 
 		svgDimensions = {
-			width: svgEl.clientWidth,
-			height: svgEl.clientHeight
+			width: svgEl.clientWidth || svgEl.parentNode.clientWidth,
+			height: svgEl.clientHeight || svgEl.parentNode.clientHeight
 		};
 
 		center = {
-			x: svgEl.clientWidth / 2,
-			y: svgEl.clientHeight / 2
+			x: svgDimensions.width / 2,
+			y: svgDimensions.height / 2
 		};
 
 		radius = svgDimensions.width * 0.4; //Occupying 80% of the SVG size
@@ -60,11 +60,11 @@ function PieInfographic(stats) {
 			pathEl.addEventListener('click',function(event){
 
 					//Bring all pies to normal state
-					self._performAction('normal', -1, function(){
+					self._performAction('normal', -1, 1,function(){
 						//Rotate the graphic to center the clicked pie.
 						self._rotateGraphicToPie(self._pathNodes.indexOf(event.target),function(){
 							//Expand/shrink pies based on the clicked pie.
-							self._performAction('expand', self._pathNodes.indexOf(event.target),null);	
+							self._performAction('expand', self._pathNodes.indexOf(event.target),1,null);	
 						});
 					});
 			});
@@ -97,20 +97,21 @@ function PieInfographic(stats) {
 			});
 
 		parentGroupEl.style.transform = 'rotate(' + (angleTo) + 'deg)';
+		parentGroupEl.style.webkitTransform = 'rotate(' + (angleTo) + 'deg)';
 
 		parentGroupEl.setAttribute('data-offset-angle',angleTo);
 	}
 
 
 
-	function _performAction(state,index,callback){
+	function _performAction(state,index,duration,callback){
 
 			var self = this,
 			center = self._center,
 			radius = self._radius,
 			arcPositions = [];
 
-			if(state === 'normal'){			
+			if(!duration){			
 
 				arcPositions = self._getArcPositionsForState(state);
 
@@ -168,7 +169,7 @@ function PieInfographic(stats) {
 
 					//if increments has one non-null entry
 					if(nextFrameRequestNeeded)
-						window.requestAnimationFrame(drawIncrement);
+						_requestAnimationFrame(drawIncrement);
 					else{
 						self._setDataAttributes(state,index);
 						if(callback)
@@ -176,7 +177,7 @@ function PieInfographic(stats) {
 					}
 				}
 
-				window.requestAnimationFrame(drawIncrement);
+				_requestAnimationFrame(drawIncrement);
 			}
 		}
 
@@ -262,12 +263,6 @@ function PieInfographic(stats) {
 				return null;
 			}
 
-			if(el.getAttribute('fill') === "#5793F3"){
-				console.log('Source Angles before: + ' + sourceAngles[0]  + ',' + sourceAngles[1] + 
-					'Target Angles before: + ' + pieTargetAngles[0]  + ',' + pieTargetAngles[1]);
-			}
-
-
 			//Calculate shorter route to the targetAngles.
 			if(Math.abs(pieTargetAngles[0] - sourceAngles[0]) > Math.PI){
 				if(pieTargetAngles[0] < sourceAngles[0])
@@ -281,17 +276,7 @@ function PieInfographic(stats) {
 					pieTargetAngles[1] += 2 * Math.PI;
 				else
 					sourceAngles[1] += 2 * Math.PI;
-			}	
-				
-			
-			
-
-			if(el.getAttribute('fill') === "#5793F3"){
-				console.log('Source Angles after: + ' + sourceAngles[0]  + ',' + sourceAngles[1] + 
-					'Target Angles after: + ' + pieTargetAngles[0]  + ',' + pieTargetAngles[1]);
-			}
-
-
+			}				
 
 			if(sourceAngles[0] < pieTargetAngles[0])
 				sourceAngles[0] = Math.min(sourceAngles[0]+0.1,pieTargetAngles[0]);
@@ -379,6 +364,16 @@ function PieInfographic(stats) {
 					else
 						self._pathNodes[i].setAttribute('data-state','shrink');
 			}			
+		}
+
+		function _requestAnimationFrame(callback){
+			var requestAnimationFrame = window.requestAnimationFrame
+			    || window.webkitRequestAnimationFrame
+			    || window.mozRequestAnimationFrame
+			    || window.msRequestAnimationFrame
+			    || function(callback) { return setTimeout(callback, 1000 / 60); };
+
+			    requestAnimationFrame(callback);
 		}
 }
 
