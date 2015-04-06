@@ -66,7 +66,7 @@ function PieInfographic(stats) {
 			pathEl.addEventListener('click',function(event){
 
 					//Bring all pies to normal state
-					self._performAction('normal',0,false,function(){
+					self._performAction('normal',0,true,function(){
 						//Rotate the graphic to center the clicked pie.
 						self._rotateGraphicToPie(self._pathNodes.indexOf(event.target),function(){
 							//Expand/shrink pies based on the clicked pie.
