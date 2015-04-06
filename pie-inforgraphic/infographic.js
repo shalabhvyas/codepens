@@ -5,9 +5,11 @@ function PieInfographic(stats) {
 
 	this._angles = {};
 	this._pathNodes = [];
+	this._contentNodes = [];
 	this._center = 0;
 	this._radius = 0;
 	this._performAction = _performAction;
+	this._drawPie = _drawPie;
 	this._rotateGraphicToPie = _rotateGraphicToPie;
 	this._getArcPositionsForState = _getArcPositionsForState;
 	this._setDataAttributes = _setDataAttributes;
@@ -18,7 +20,7 @@ function PieInfographic(stats) {
 		var self = this;
 
 		var svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
-			parentGroupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
+			parentGroupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g'),			
 			svgDimensions, center, radius,
 			baseAngle, expandedAngle, shrunkAngle;
 
@@ -54,29 +56,42 @@ function PieInfographic(stats) {
 		self._angles.shrunkAngle = shrunkAngle;
 
 		for(var i=0; i<stats.length;i++){
-			var pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+			var pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path'),
+			contentEl = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
+			//contentInnerGroupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
+			textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text'),
+			groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 			pathEl.setAttribute('fill', stats[i].color);
 			
 			pathEl.addEventListener('click',function(event){
 
 					//Bring all pies to normal state
-					self._performAction('normal', -1, 1,function(){
+					self._performAction('normal',0,false,function(){
 						//Rotate the graphic to center the clicked pie.
 						self._rotateGraphicToPie(self._pathNodes.indexOf(event.target),function(){
 							//Expand/shrink pies based on the clicked pie.
-							self._performAction('expand', self._pathNodes.indexOf(event.target),1,null);	
-						});
+							//self._performAction('expand', self._pathNodes.indexOf(event.target),true,null);	
+						});							
 					});
 			});
 
-			this._pathNodes.push(parentGroupEl.appendChild(pathEl));			
+			this._pathNodes.push(groupEl.appendChild(pathEl));
+
+			textEl.setAttribute('fill','black');
+			textEl.innerHTML = '#'+i;
+			contentEl.classList.add('content-group')
+			
+			contentEl.appendChild(textEl);			
+			this._contentNodes.push(groupEl.appendChild(contentEl));
+
+			parentGroupEl.appendChild(groupEl);
 		}
 
 		this._performAction('normal');		
 	}
 
 	function _rotateGraphicToPie(index,callback){
-		var parentGroupEl = this._pathNodes[0].parentNode.parentNode,
+		var parentGroupEl = this._pathNodes[0].parentNode.parentNode.parentNode,
 		angleFrom  = parseFloat(parentGroupEl.getAttribute('data-offset-angle')) || 0,
 		angleTo = -1 * (index * this._angles.baseAngle * 180/ Math.PI);
 
@@ -99,25 +114,39 @@ function PieInfographic(stats) {
 		parentGroupEl.style.transform = 'rotate(' + (angleTo) + 'deg)';
 		parentGroupEl.style.webkitTransform = 'rotate(' + (angleTo) + 'deg)';
 
+		
+		for(var i = 0; i < this._contentNodes.length;i++){
+
+			this._contentNodes[i].style.transition = 'transform 2s';
+			this._contentNodes[i].style.webkitTransition = '-webkit-transform 2s';
+				
+			this._contentNodes[i].addEventListener('transitionend',function(event){
+				event.target.style.transition = '';
+				event.target.style.webkitTransition = '';
+				event.target.removeEventListener(event.type, arguments.callee);
+			});	
+
+			_setTransformProp(this._contentNodes[i],'rotate',(-1 * angleTo) + 'deg');
+		}
+
 		parentGroupEl.setAttribute('data-offset-angle',angleTo);
 	}
 
 
 
-	function _performAction(state,index,duration,callback){
+	function _performAction(state,index,animate,callback){
 
 			var self = this,
 			center = self._center,
 			radius = self._radius,
 			arcPositions = [];
 
-			if(!duration){			
+			if(!animate){			
 
 				arcPositions = self._getArcPositionsForState(state);
 
 				for(var i=0; i< self._pathNodes.length;i++){								
-					self._pathNodes[i].setAttribute('d',
-						_getPathDescForArcPositions(center,radius,arcPositions[i][0],arcPositions[i][1]));
+					self._drawPie(i,_getPathDescForArcPositions(center,radius,arcPositions[i][0],arcPositions[i][1]));					
 				}	
 				
 				self._setDataAttributes(state,index);
@@ -141,7 +170,7 @@ function PieInfographic(stats) {
 					//Calculating first set of increments
 					increments.push(self._getNextIncrement(self._pathNodes[i],
 							targetAngles[i],
-						(i === index)? radius*1.05 : null));
+						(i === index && state === 'expand')? radius*1.05 : null));
 				}
 
 
@@ -149,7 +178,7 @@ function PieInfographic(stats) {
 					
 					for (var i = 0; i < increments.length; i++) {
 						if(increments[i] !== null)
-							self._pathNodes[i].setAttribute('d', increments[i]);
+							self._drawPie(i,increments[i]);
 					};
 
 					increments = [];
@@ -160,14 +189,14 @@ function PieInfographic(stats) {
 						
 						increments.push(self._getNextIncrement(self._pathNodes[i],
 							targetAngles[i],
-							(i === index)? radius*1.05 : null));
+							(i === index && state === 'expand')? radius*1.05 : null));
 
 						if(increments[i] !== null){
 							nextFrameRequestNeeded = true;
 						}
 					}
 
-					//if increments has one non-null entry
+					//Request next frame only if there is atleast one path that needs to be drawn.
 					if(nextFrameRequestNeeded)
 						_requestAnimationFrame(drawIncrement);
 					else{
@@ -294,6 +323,47 @@ function PieInfographic(stats) {
 
 		}
 		
+		function _getContentPositionForArc(center,radius,arcPoints){
+			
+			var arcStartAngle = _cartesianToPolar(center,arcPoints[0]).theta,
+			arcEndAngle = _cartesianToPolar(center,arcPoints[1]).theta,
+			contentAngle = arcStartAngle + (arcEndAngle - arcStartAngle)/2;
+
+			if(Math.abs(arcEndAngle - arcStartAngle) > Math.PI)
+				contentAngle -= Math.PI;
+
+			return _polarToCartesian(center,radius*0.5,contentAngle);
+
+		}
+
+		function _setDataAttributes(state,index){
+
+			var self  = this;
+
+			for(var i=0;i<self._pathNodes.length;++i){
+					if(state === 'normal')
+						self._pathNodes[i].setAttribute('data-state',state);
+					else if(state === 'expand' && i === index)			
+						self._pathNodes[i].setAttribute('data-state',state);
+					else
+						self._pathNodes[i].setAttribute('data-state','shrink');
+			}			
+		}
+
+		//Utility functions below
+		function _drawPie(index,pathDesc){
+			var self = this,
+			pathEl = self._pathNodes[index],
+			contentEl = self._contentNodes[index],
+			translateTo = '';
+
+			pathEl.setAttribute('d',pathDesc);
+
+			contentPoints = _getContentPositionForArc(self._center,self._radius,_getArcCoordinates(pathEl));
+			translateTo = (contentPoints.x - contentEl.clientWidth/2) + 'px,'  + (contentPoints.y + contentEl.clientHeight/2) + 'px';
+
+			_setTransformProp(contentEl,'translate',translateTo);			
+		}
 
 		function _getPathDescForArcPositions(center, radius, startPoint, endPoint) {
 			var points = 'M' + center.x + ',' + center.y;
@@ -307,13 +377,6 @@ function PieInfographic(stats) {
 			points += ' Z';
 
 			return points;
-		}
-
-		function _createAnimElement(tag, attrs) {
-			var animEl = document.createElementNS('http://www.w3.org/2000/svg', tag);
-			for (key in attrs)
-				animEl.setAttribute(key, attrs[key]);
-			return animEl;
 		}
 
 		function _polarToCartesian(center,radius,angle){
@@ -339,6 +402,8 @@ function PieInfographic(stats) {
 		}
 
 		function _getArcCoordinates(pathEl){
+
+			//Need to use data-attributes to get these co-ordinates instead of parsing the desc attribute.	
 			var desc = pathEl.getAttribute('d'),
 			startPoints = desc.split('L ')[1].split(' A')[0].split(' '),
 			endPoints = desc.split('1 0 1 ')[1].split(' L')[0].split(' ');
@@ -350,20 +415,27 @@ function PieInfographic(stats) {
 				x: parseFloat(endPoints[0]),
 				y: parseFloat(endPoints[1])
 			}];
+		}		
+
+		function _createAnimElement(tag, attrs) {
+			var animEl = document.createElementNS('http://www.w3.org/2000/svg', tag);
+			for (key in attrs)
+				animEl.setAttribute(key, attrs[key]);
+			return animEl;
 		}
 
-		function _setDataAttributes(state,index){
+		function _setTransformProp(el,prop,value){
 
-			var self  = this;
+			if(el.style.transform.indexOf(prop) === -1)
+				el.style.transform = el.style.transform + prop + '(' + value + ')';
+			else{
+				var oldValue = el.style.transform.split(prop+'(')[1]
+								.split(')')[0];
+				el.style.transform = el.style.transform.replace(oldValue,value);
+			}
 
-			for(var i=0;i<self._pathNodes.length;++i){
-					if(state === 'normal')
-						self._pathNodes[i].setAttribute('data-state',state);
-					else if(state === 'expand' && i === index)			
-						self._pathNodes[i].setAttribute('data-state',state);
-					else
-						self._pathNodes[i].setAttribute('data-state','shrink');
-			}			
+			el.style.webkitTransform = el.style.transform;
+
 		}
 
 		function _requestAnimationFrame(callback){

@@ -3,11 +3,17 @@
   height: 25vw;
   margin: auto; }
   .infographic-wrapper svg {
-    transform-origin: 50% 50%;
-    -webkit-transform-origin: 50% 50%;
     transition: transform 2s;
-    -webkit-transition: -webkit-transform 2s;
+    -webkit-transition: -webkit-transform 2s; }
+  .infographic-wrapper .outer-group, .infographic-wrapper .content-group {
+    transform-origin: '50% 50%';
+    -webkit-transform-origin: '50% 50%';
     width: 100%;
     height: 100%; }
+  .infographic-wrapper .outer-group {
+    transition: transform 2s;
+    -webkit-transition: -webkit-transform 2s; }
+  .infographic-wrapper .content-group {
+    overflow: visible; }
 
 /*# sourceMappingURL=infographic.css.map */
