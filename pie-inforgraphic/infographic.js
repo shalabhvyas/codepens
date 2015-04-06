@@ -70,7 +70,7 @@ function PieInfographic(stats) {
 						//Rotate the graphic to center the clicked pie.
 						self._rotateGraphicToPie(self._pathNodes.indexOf(event.target),function(){
 							//Expand/shrink pies based on the clicked pie.
-							//self._performAction('expand', self._pathNodes.indexOf(event.target),true,null);	
+							self._performAction('expand', self._pathNodes.indexOf(event.target),true,null);	
 						});							
 					});
 			});
@@ -78,6 +78,9 @@ function PieInfographic(stats) {
 			this._pathNodes.push(groupEl.appendChild(pathEl));
 
 			textEl.setAttribute('fill','black');
+			textEl.setAttribute('text-anchor','middle');
+			textEl.setAttribute('dominant-baseline','central');
+
 			textEl.innerHTML = '#'+i;
 			contentEl.classList.add('content-group')
 			
@@ -360,7 +363,8 @@ function PieInfographic(stats) {
 			pathEl.setAttribute('d',pathDesc);
 
 			contentPoints = _getContentPositionForArc(self._center,self._radius,_getArcCoordinates(pathEl));
-			translateTo = (contentPoints.x - contentEl.clientWidth/2) + 'px,'  + (contentPoints.y + contentEl.clientHeight/2) + 'px';
+			translateTo = (contentPoints.x) + 'px,'  + (contentPoints.y) + 'px';
+			//translateTo = (contentPoints.x - contentEl.clientWidth/2) + 'px,'  + (contentPoints.y - contentEl.clientHeight/2) + 'px';
 
 			_setTransformProp(contentEl,'translate',translateTo);			
 		}
