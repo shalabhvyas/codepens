@@ -245,6 +245,7 @@ function PieInfographic(stats) {
 					}else{
 						angleOffset = -1 * (index * baseAngle);
 						angleOffset += expandedAngle/2 + index * shrunkAngle;
+						angleOffset += shrunkAngle/2;
 					}
 
 					for(var i=0;i<stats.length;i++){
@@ -345,11 +346,11 @@ function PieInfographic(stats) {
 
 			for(var i=0;i<self._pathNodes.length;++i){
 					if(state === 'normal')
-						self._pathNodes[i].setAttribute('data-state',state);
+						self._pathNodes[i].parentNode.setAttribute('data-state',state);
 					else if(state === 'expand' && i === index)			
-						self._pathNodes[i].setAttribute('data-state',state);
+						self._pathNodes[i].parentNode.setAttribute('data-state',state);
 					else
-						self._pathNodes[i].setAttribute('data-state','shrink');
+						self._pathNodes[i].parentNode.setAttribute('data-state','shrink');
 			}			
 		}
 
