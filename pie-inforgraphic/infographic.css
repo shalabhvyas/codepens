@@ -1,19 +1,28 @@
 .infographic-wrapper {
-  width: 25vw;
-  height: 25vw;
+  width: 30vw;
+  height: 30vw;
   margin: auto; }
   .infographic-wrapper svg {
     transition: transform 2s;
     -webkit-transition: -webkit-transform 2s; }
-  .infographic-wrapper .outer-group, .infographic-wrapper .content-group {
+  .infographic-wrapper .outer-group, .infographic-wrapper .content-group .icon-group {
     transform-origin: '50% 50%';
-    -webkit-transform-origin: '50% 50%';
-    width: 100%;
-    height: 100%; }
+    -webkit-transform-origin: '50% 50%'; }
   .infographic-wrapper .outer-group {
     transition: transform 2s;
-    -webkit-transition: -webkit-transform 2s; }
+    -webkit-transition: -webkit-transform 2s;
+    width: 100%;
+    height: 100%; }
+    .infographic-wrapper .outer-group [data-state~='expand'] > .content-group .icon-group {
+      opacity: 1; }
+    .infographic-wrapper .outer-group [data-state~='expand'] > .content-group .detail {
+      opacity: 1; }
   .infographic-wrapper .content-group {
     overflow: visible; }
+    .infographic-wrapper .content-group .icon-group {
+      font-size: 22px;
+      opacity: 0.5; }
+    .infographic-wrapper .content-group .detail {
+      opacity: 0; }
 
 /*# sourceMappingURL=infographic.css.map */

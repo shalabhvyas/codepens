@@ -14,6 +14,7 @@ function PieInfographic(stats) {
 	this._getArcPositionsForState = _getArcPositionsForState;
 	this._setDataAttributes = _setDataAttributes;
 	this._getNextIncrement = _getNextIncrement;	
+	this._attachContent = _attachContent;
 
 	function render(parentEl) {
 
@@ -58,7 +59,6 @@ function PieInfographic(stats) {
 		for(var i=0; i<stats.length;i++){
 			var pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path'),
 			contentEl = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
-			//contentInnerGroupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
 			textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text'),
 			groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 			pathEl.setAttribute('fill', stats[i].color);
@@ -67,30 +67,41 @@ function PieInfographic(stats) {
 
 					//Bring all pies to normal state
 					self._performAction('normal',0,true,function(){
+
 						//Rotate the graphic to center the clicked pie.
-						self._rotateGraphicToPie(self._pathNodes.indexOf(event.target),function(){
+						var indexInParent = self._pathNodes.indexOf(event.target);
+							
+						self._rotateGraphicToPie(indexInParent,function(){
+						
 							//Expand/shrink pies based on the clicked pie.
-							self._performAction('expand', self._pathNodes.indexOf(event.target),true,null);	
+							self._performAction('expand', indexInParent,true,function(){
+
+								_renderContentForPie(event.target.nextSibling,self.stats[indexInParent],self._center,self._radius);
+							
+							});
 						});							
 					});
 			});
 
 			this._pathNodes.push(groupEl.appendChild(pathEl));
-
-			textEl.setAttribute('fill','black');
-			textEl.setAttribute('text-anchor','middle');
-			textEl.setAttribute('dominant-baseline','central');
-
-			textEl.innerHTML = '#'+i;
-			contentEl.classList.add('content-group')
-			
-			contentEl.appendChild(textEl);			
+			contentEl.classList.add('content-group');
+				
 			this._contentNodes.push(groupEl.appendChild(contentEl));
-
 			parentGroupEl.appendChild(groupEl);
 		}
 
-		this._performAction('normal');		
+
+		var circleEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+		circleEl.setAttribute('fill','#393D45');
+		circleEl.setAttribute('cx',center.x);
+		circleEl.setAttribute('cy',center.y);
+		circleEl.setAttribute('r',radius * 0.4);
+
+		svgEl.appendChild(circleEl);
+
+		this._attachContent();
+
+		this._performAction('normal');
 	}
 
 	function _rotateGraphicToPie(index,callback){
@@ -120,16 +131,19 @@ function PieInfographic(stats) {
 		
 		for(var i = 0; i < this._contentNodes.length;i++){
 
-			this._contentNodes[i].style.transition = 'transform 2s';
-			this._contentNodes[i].style.webkitTransition = '-webkit-transform 2s';
+			var icon = this._contentNodes[i].querySelector('g.icon-group');
+
+
+			icon.transition = 'transform 2s';
+			icon.style.webkitTransition = '-webkit-transform 2s';
 				
-			this._contentNodes[i].addEventListener('transitionend',function(event){
+			icon.addEventListener('transitionend',function(event){
 				event.target.style.transition = '';
 				event.target.style.webkitTransition = '';
 				event.target.removeEventListener(event.type, arguments.callee);
 			});	
 
-			_setTransformProp(this._contentNodes[i],'rotate',(-1 * angleTo) + 'deg');
+			_setTransformProp(icon,'rotate',(-1 * angleTo) + 'deg');
 		}
 
 		parentGroupEl.setAttribute('data-offset-angle',angleTo);
@@ -242,11 +256,13 @@ function PieInfographic(stats) {
 
 					if(index === 0){
 						angleOffset = self._angles.expandedAngle/2;
+
 					}else{
 						angleOffset = -1 * (index * baseAngle);
-						angleOffset += expandedAngle/2 + index * shrunkAngle;
-						angleOffset += shrunkAngle/2;
+						angleOffset += expandedAngle/2 + index * shrunkAngle;						
 					}
+
+					angleOffset += shrunkAngle/2;
 
 					for(var i=0;i<stats.length;i++){
 
@@ -336,7 +352,7 @@ function PieInfographic(stats) {
 			if(Math.abs(arcEndAngle - arcStartAngle) > Math.PI)
 				contentAngle -= Math.PI;
 
-			return _polarToCartesian(center,radius*0.5,contentAngle);
+			return _polarToCartesian(center,radius*0.7,contentAngle);
 
 		}
 
@@ -354,7 +370,17 @@ function PieInfographic(stats) {
 			}			
 		}
 
+		function _attachContent(){
+			var stats = this.stats,
+			contentNodes = this._contentNodes;
+
+			for(var i=0;i<stats.length;i++){
+				_attachContentForPie(contentNodes[i],stats[i],this._center,this._radius);
+			}
+		}
+
 		//Utility functions below
+
 		function _drawPie(index,pathDesc){
 			var self = this,
 			pathEl = self._pathNodes[index],
@@ -364,10 +390,85 @@ function PieInfographic(stats) {
 			pathEl.setAttribute('d',pathDesc);
 
 			contentPoints = _getContentPositionForArc(self._center,self._radius,_getArcCoordinates(pathEl));
-			translateTo = (contentPoints.x) + 'px,'  + (contentPoints.y) + 'px';
-			//translateTo = (contentPoints.x - contentEl.clientWidth/2) + 'px,'  + (contentPoints.y - contentEl.clientHeight/2) + 'px';
+			translateTo = (contentPoints.x) + 'px,'  + (contentPoints.y) + 'px';			
 
 			_setTransformProp(contentEl,'translate',translateTo);			
+		}
+
+		function _attachContentForPie(el,stats,center,radius){
+
+			var details = stats.details;			
+
+			var icon = _createSVGElement('text',{
+				'font-family':'FontAwesome',
+				'x':'0',
+				'y':'0',
+				'fill':'white',
+				'text-anchor':'middle',
+				'dominant-baseline':'central'				
+			}),
+			iconGroup = _createSVGElement('g',{
+				'class':'icon-group'
+			});
+			
+			icon.innerHTML = '&#x' + stats.icon;
+			iconGroup.appendChild(icon);
+
+			el.appendChild(iconGroup);
+
+			for(var i=0;i<details.length;i++){
+				
+				var detailGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
+				background = document.createElementNS('http://www.w3.org/2000/svg', 'circle'),
+				detail = document.createElementNS('http://www.w3.org/2000/svg', 'text');				
+
+				background.setAttribute('fill','white');
+				background.setAttribute('r','20');
+
+				//detail.innerHTML = details[i];
+
+				detailGroup.appendChild(background);
+				detailGroup.appendChild(detail);
+				detailGroup.classList.add('detail');
+				
+				el.appendChild(detailGroup);
+			}
+
+		}
+
+		function _renderContentForPie(el,stats,center,radius){
+
+			var details = stats.details,
+			detailsGroupEl = el.querySelectorAll('g.detail'),
+			arcPoints = _getArcCoordinates(el.parentNode.querySelector('path')),
+			arcStartAngle = _cartesianToPolar(center,arcPoints[0]).theta,
+			arcEndAngle = _cartesianToPolar(center,arcPoints[1]).theta,			
+			dividingAngle = Math.abs(arcEndAngle - arcStartAngle), 
+			centerCoordinates = _getContentPositionForArc(center,radius,arcPoints),
+			centerAngle = _cartesianToPolar(center,centerCoordinates).theta;
+
+			if(Math.abs(arcEndAngle - arcStartAngle) > Math.PI){
+				dividingAngle = 2*Math.PI - dividingAngle;
+			}
+
+			dividingAngle = dividingAngle/(details.length + 1);	
+			dividingAngle = dividingAngle * 1.25; //spacing out the detail icons.
+
+			for(var i=0;i<details.length;i++){
+
+				var detailGroup = detailsGroupEl[i],
+				angle = centerAngle - (i - Math.floor(details.length/2)) * dividingAngle;
+
+				if(angle < -2*Math.PI)
+					angle += 2 * Math.PI;
+
+				position = _polarToCartesian(center,radius * 0.7, angle);
+				position.x += detailGroup.clientWidth/2;
+				position.y += detailGroup.clientHeight/2;
+
+				_setTransformProp(detailGroup,'translate',(position.x - centerCoordinates.x)+'px, ' + (position.y - centerCoordinates.y)+'px');				
+			}
+
 		}
 
 		function _getPathDescForArcPositions(center, radius, startPoint, endPoint) {
@@ -422,11 +523,11 @@ function PieInfographic(stats) {
 			}];
 		}		
 
-		function _createAnimElement(tag, attrs) {
-			var animEl = document.createElementNS('http://www.w3.org/2000/svg', tag);
+		function _createSVGElement(tag, attrs) {
+			var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
 			for (key in attrs)
-				animEl.setAttribute(key, attrs[key]);
-			return animEl;
+				el.setAttribute(key, attrs[key]);
+			return el;
 		}
 
 		function _setTransformProp(el,prop,value){
@@ -457,21 +558,53 @@ function PieInfographic(stats) {
 window.onload = function() {
 	var graphicWrapper = document.getElementsByTagName('div')[0],
 		graphic = new PieInfographic([{
-			color: '#5793F3'
+			color: '#5793F3',
+			icon: 'f09a',
+			details: [
+				'Seattle', '$1.8b', '117k'
+			]
 		}, {
-			color: '#DD4D79'
+			color: '#DD4D79',
+			icon: 'f1a0',
+			details: [
+				'Seattle', '$1.8b', '117k'
+			]
 		}, {
-			color: '#BD3B47'
+			color: '#BD3B47',
+			icon: 'f0e1',
+			details: [
+				'Seattle', '$1.8b', '117k'
+			]
 		}, {
-			color: '#DD4444'
+			color: '#DD4444',
+			icon: 'f1ed',
+			details: [
+				'Seattle', '$1.8b', '117k'
+			]
 		}, {
-			color: '#FD9C35'
+			color: '#FD9C35',
+			icon: 'f099',
+			details: [
+				'Seattle', '$1.8b', '117k'
+			]
 		}, {
-			color: '#FEC42C'
+			color: '#FEC42C',
+			icon: 'f17a',
+			details: [
+				'Seattle', '$1.8b', '117k'
+			]
 		}, {
-			color: '#D4Df5A'
+			color: '#D4Df5A',
+			icon: 'f16b',
+			details: [
+				'Seattle', '$1.8b', '117k'
+			]
 		}, {
-			color: '#5578C2'
+			color: '#5578C2',
+			icon: 'f179',
+			details: [
+				'Seattle', '$1.8b', '117k'
+			]
 		}]);
 
 	graphic.render(graphicWrapper);
