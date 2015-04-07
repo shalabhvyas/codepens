@@ -15,8 +15,6 @@
     height: 100%; }
     .infographic-wrapper .outer-group [data-state~='expand'] > .content-group .icon-group {
       opacity: 1; }
-    .infographic-wrapper .outer-group [data-state~='expand'] > .content-group .detail {
-      opacity: 1; }
   .infographic-wrapper .content-group {
     overflow: visible; }
     .infographic-wrapper .content-group .icon-group {
@@ -24,5 +22,22 @@
       opacity: 0.5; }
     .infographic-wrapper .content-group .detail {
       opacity: 0; }
+      .infographic-wrapper .content-group .detail.enter {
+        animation: fadeIn 2s ease-in 0s 1 normal forwards;
+        -webkit-animation: fadeIn 2s ease-in 0s 1 normal forwards; }
+      .infographic-wrapper .content-group .detail.exit {
+        animation: fadeIn 0.2s ease-in 0s 1 reverse forwards;
+        -webkit-animation: fadeIn 0.2s ease-in 0s 1 reverse forwards; }
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0; }
+  100% {
+    opacity: 1; } }
+@-webkit-keyframes fadeIn {
+  0% {
+    opacity: 0; }
+  100% {
+    opacity: 1; } }
 
 /*# sourceMappingURL=infographic.css.map */

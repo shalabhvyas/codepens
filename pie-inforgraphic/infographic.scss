@@ -24,10 +24,7 @@
     		.icon-group{
     			opacity:1
     		}
-
-    		.detail{
-				opacity:1;
-			}
+    		
 		}
 	}
 
@@ -41,6 +38,39 @@
 
 		.detail{
 			opacity: 0;
-		}		
+
+			&.enter{
+				animation: fadeIn 2s ease-in 0s 1 normal forwards;
+				-webkit-animation: fadeIn 2s ease-in 0s 1 normal forwards;
+			}
+
+			&.exit{
+				animation: fadeIn 0.2s ease-in 0s 1 reverse forwards;	
+				-webkit-animation: fadeIn 0.2s ease-in 0s 1 reverse forwards;
+			}
+		}
 	}
 }
+
+
+@keyframes fadeIn{
+	0%{
+		opacity: 0;
+	}
+
+	100%{
+		opacity: 1;
+	}
+}
+
+@-webkit-keyframes fadeIn{
+	0%{
+		opacity: 0;
+	}
+
+	100%{
+		opacity: 1;
+	}
+}
+
+

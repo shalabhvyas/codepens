@@ -6,6 +6,7 @@ function PieInfographic(stats) {
 	this._angles = {};
 	this._pathNodes = [];
 	this._contentNodes = [];
+	this._currentPie = -1;
 	this._center = 0;
 	this._radius = 0;
 	this._performAction = _performAction;
@@ -65,19 +66,26 @@ function PieInfographic(stats) {
 			
 			pathEl.addEventListener('click',function(event){
 
+					var indexInParent = self._pathNodes.indexOf(event.target),
+					currentGroupEl;
+
+					if(self._currentPie >= 0){
+						currentGroupEl = self._pathNodes[self._currentPie];
+						_hideContentForPie(currentGroupEl.nextSibling);
+					}
+
 					//Bring all pies to normal state
 					self._performAction('normal',0,true,function(){
 
 						//Rotate the graphic to center the clicked pie.
-						var indexInParent = self._pathNodes.indexOf(event.target);
-							
 						self._rotateGraphicToPie(indexInParent,function(){
 						
 							//Expand/shrink pies based on the clicked pie.
 							self._performAction('expand', indexInParent,true,function(){
 
 								_renderContentForPie(event.target.nextSibling,self.stats[indexInParent],self._center,self._radius);
-							
+								self._currentPie = indexInParent;
+
 							});
 						});							
 					});
@@ -466,10 +474,24 @@ function PieInfographic(stats) {
 				position.x += detailGroup.clientWidth/2;
 				position.y += detailGroup.clientHeight/2;
 
-				_setTransformProp(detailGroup,'translate',(position.x - centerCoordinates.x)+'px, ' + (position.y - centerCoordinates.y)+'px');				
+				_setTransformProp(detailGroup,'translate',(position.x - centerCoordinates.x)+'px, ' + (position.y - centerCoordinates.y)+'px');
+
+				detailGroup.classList.remove('exit');
+				detailGroup.classList.add('enter');
 			}
 
+			//TODO: Animate the details in after positioning.
 		}
+
+		function _hideContentForPie(el){
+			var detailsGroupEl = detailsGroupEl = el.querySelectorAll('g.detail');
+
+			for(var i=0; i < detailsGroupEl.length; i++){
+				detailsGroupEl[i].classList.remove('enter')
+				detailsGroupEl[i].classList.add('exit');
+			}
+		}
+
 
 		function _getPathDescForArcPositions(center, radius, startPoint, endPoint) {
 			var points = 'M' + center.x + ',' + center.y;
