@@ -428,15 +428,31 @@ function PieInfographic(stats) {
 				
 				var detailGroup = _createSVGElement('g'),
 				background = _createSVGElement('circle'),
-				detail = _createSVGElement('text',{
-					'text-anchor':'middle',
-					'dominant-baseline':'central'
-				});
+				detail;
+
+				if(details[i].indexOf('jpg') !== -1){
+
+					detail = _createSVGElement('image',{
+							width: '43px',
+							height: '43px',
+							x:'-21.5',
+							y: '-21.5'
+					});
+
+					detail.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[i]);
+				
+				}else{
+
+					detail = _createSVGElement('text',{
+						'text-anchor':'middle',
+						'dominant-baseline':'central'
+					});
+
+					detail.innerHTML = details[i];
+				}
 
 				background.setAttribute('fill','white');
-				background.setAttribute('r','22.5');
-
-				detail.innerHTML = details[i];
+				background.setAttribute('r','22.5');				
 
 				detailGroup.appendChild(background);
 				detailGroup.appendChild(detail);
@@ -592,49 +608,49 @@ window.onload = function() {
 			color: '#5793F3',
 			icon: 'f09a',
 			details: [
-				'Seattle', '$1.8B', '117k'
+				'$1.8B', 'images/mark-zuckerberg.jpg' ,'117k'
 			]
 		}, {
 			color: '#DD4D79',
 			icon: 'f1a0',
 			details: [
-				'Seattle', '$1.8B', '117k'
+				 '$1.8B', 'images/larry-page.jpg' ,'117k'
 			]
 		}, {
 			color: '#BD3B47',
 			icon: 'f0e1',
 			details: [
-				'Seattle', '$1.8B', '117k'
+				 '$1.8B','images/jeff-weiner.jpg' , '117k'
 			]
 		}, {
 			color: '#DD4444',
 			icon: 'f1ed',
 			details: [
-				'Seattle', '$1.8B', '117k'
+				 '$1.8B','images/dan-schulman.jpg' , '117k'
 			]
 		}, {
 			color: '#FD9C35',
 			icon: 'f099',
 			details: [
-				'Seattle', '$1.8B', '117k'
+				 '$1.8B', 'images/dick-costolo.jpg' , '117k'
 			]
 		}, {
 			color: '#FEC42C',
 			icon: 'f17a',
 			details: [
-				'Seattle', '$1.8B', '117k'
+				 '$1.8B', 'images/satya-nadella.jpg' , '117k'
 			]
 		}, {
 			color: '#D4Df5A',
 			icon: 'f16b',
 			details: [
-				'Seattle', '$1.8B', '117k'
+				 '$1.8B', 'images/drew-houston.jpg' , '117k'
 			]
 		}, {
 			color: '#5578C2',
 			icon: 'f179',
 			details: [
-				'Seattle', '$1.8B', '117k'
+				 '$1.8B', 'images/tim-cook.jpg' , '117k'
 			]
 		}]);
 
