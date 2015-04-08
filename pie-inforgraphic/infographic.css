@@ -19,9 +19,10 @@
     overflow: visible; }
     .infographic-wrapper .content-group .icon-group {
       font-size: 22px;
-      opacity: 0.5; }
+      opacity: 0.4; }
     .infographic-wrapper .content-group .detail {
-      opacity: 0; }
+      opacity: 0;
+      font-size: 15px; }
       .infographic-wrapper .content-group .detail.enter {
         animation: fadeIn 2s ease-in 0s 1 normal forwards;
         -webkit-animation: fadeIn 2s ease-in 0s 1 normal forwards; }
