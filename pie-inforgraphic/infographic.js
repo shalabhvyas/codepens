@@ -99,13 +99,30 @@ function PieInfographic(stats) {
 		}
 
 
-		var circleEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-		circleEl.setAttribute('fill','#393D45');
-		circleEl.setAttribute('cx',center.x);
-		circleEl.setAttribute('cy',center.y);
-		circleEl.setAttribute('r',radius * 0.4);
+		//Create and append the circle in the center
+		var circleEl = _createSVGElement('circle',{
+			'fill':'#393D45',
+			'cx': center.x,
+			'cy': center.y,
+			'r' : radius * 0.4
+		});
 
-		svgEl.appendChild(circleEl);
+		self._centerCircle = svgEl.appendChild(circleEl);
+
+		//Create the clip-path defs.	
+		var defs = _createSVGElement('defs'),
+		clipPath = _createSVGElement('clipPath',{
+			'id':'detailClipPath'
+		}),
+		clipCircle = _createSVGElement('circle',{
+			'r':'21.5',
+			'stroke':'white'
+		});
+
+		clipPath.appendChild(clipCircle);
+		defs.appendChild(clipPath);
+
+		svgEl.insertBefore(defs,svgEl.firstElement);
 
 		this._attachContent();
 
@@ -436,7 +453,8 @@ function PieInfographic(stats) {
 							width: '43px',
 							height: '43px',
 							x:'-21.5',
-							y: '-21.5'
+							y: '-21.5',
+							'clip-path':'url(#detailClipPath)'
 					});
 
 					detail.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[i]);
