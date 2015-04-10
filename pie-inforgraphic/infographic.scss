@@ -41,14 +41,34 @@
 			font-size: 15px;
 
 			&.enter{
-				animation: fadeIn 2s ease-in 0s 1 normal forwards;
-				-webkit-animation: fadeIn 2s ease-in 0s 1 normal forwards;
+				animation: fadeIn 0.75s ease-in 0s 1 normal forwards;
+				-webkit-animation: fadeIn 0.75s ease-in 0s 1 normal forwards;
 			}
 
 			&.exit{
-				animation: fadeIn 0.2s ease-in 0s 1 reverse forwards;	
-				-webkit-animation: fadeIn 0.2s ease-in 0s 1 reverse forwards;
+				animation: fadeIn 0.2s ease-in 0s 1 reverse backwards;	
+				-webkit-animation: fadeIn 0.2s ease-in 0s 1 reverse backwards;
 			}
+		}
+	}
+
+	.center-circle{
+		&.icon{
+				text.subhead,text.detail,image{
+					display: none;
+				}
+		}
+
+		&.image{
+				text.head{
+					display: none;
+				}
+		}
+
+		&.text{
+				image{
+					display: none;
+				}
 		}
 	}
 }

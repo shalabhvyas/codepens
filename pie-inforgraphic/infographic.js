@@ -12,6 +12,7 @@ function PieInfographic(stats) {
 	this._performAction = _performAction;
 	this._drawPie = _drawPie;
 	this._rotateGraphicToPie = _rotateGraphicToPie;
+	this._createDOMForCenter = _createDOMForCenter;
 	this._getArcPositionsForState = _getArcPositionsForState;
 	this._setDataAttributes = _setDataAttributes;
 	this._getNextIncrement = _getNextIncrement;	
@@ -83,7 +84,7 @@ function PieInfographic(stats) {
 							//Expand/shrink pies based on the clicked pie.
 							self._performAction('expand', indexInParent,true,function(){
 
-								_renderContentForPie(event.target.nextSibling,self.stats[indexInParent],self._center,self._radius);
+								_renderContentForPie(event.target.nextSibling,self._center,self._radius);
 								self._currentPie = indexInParent;
 
 							});
@@ -99,15 +100,8 @@ function PieInfographic(stats) {
 		}
 
 
-		//Create and append the circle in the center
-		var circleEl = _createSVGElement('circle',{
-			'fill':'#393D45',
-			'cx': center.x,
-			'cy': center.y,
-			'r' : radius * 0.4
-		});
-
-		self._centerCircle = svgEl.appendChild(circleEl);
+		
+		self._createDOMForCenter(svgEl);
 
 		//Create the clip-path defs.	
 		var defs = _createSVGElement('defs'),
@@ -174,7 +168,77 @@ function PieInfographic(stats) {
 		parentGroupEl.setAttribute('data-offset-angle',angleTo);
 	}
 
+	function _createDOMForCenter(svgEl){
 
+		//Create the circle in the center
+		var circleEl = _createSVGElement('circle',{
+			'fill':'#393D45',
+			'cx': this._center.x,
+			'cy': this._center.y,
+			'r' : this._radius * 0.4,
+			'class': 'center-circle'
+		});
+
+		//DOM for single icon view.
+		var textHead = _createSVGElement('text',{
+			'class' : 'head'
+		}),
+		textSubHead = _createSVGElement('text',{
+			'class' : 'subhead'
+		}),
+		textDetail = _createSVGElement('text',{
+			'class' : 'detail'
+		}),
+		image = _createSVGElement('image',{
+			'width': '100%',
+			'height': '100%'
+		}),
+		contentGroup = _createSVGElement('g');
+
+		contentGroup.appendChild(textHead);
+		contentGroup.appendChild(textSubHead);
+		contentGroup.appendChild(textDetail);
+		contentGroup.appendChild(image);
+
+		circleEl.appendChild(contentGroup);
+
+		this._centerCircle = svgEl.appendChild(circleEl);
+	}
+
+	function _setStateForCenter(circleEl,state,details){		
+
+		var textHead,textSubHead,textDetail,image;
+
+		textHead = circleEl.querySelectorAll('text.head')[0];
+		textSubHead = circleEl.querySelectorAll('text.subhead')[0];
+		textDetail = circleEl.querySelectorAll('text.detail')[0];
+		image = circleEl.querySelectorAll('image')[0];		
+
+		//@TODO: Animate out the current state and then do the below.
+
+		//Set data for next state of the circle
+		if(state === 'icon'){
+			textHead.innerHTML = '&#x' + details.icon;
+		}else if(state === 'text'){
+			textHead.innerHTML = details.head;
+			textSubHead.innerHTML = details.subhead;
+			textDetail.innerHTML = details.detail;
+		}else if(state === 'image'){
+			image.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details.image);
+			textSubHead.innerHTML = details.subhead;
+			textDetail.innerHTML = details.detail;
+		}
+
+		//Set classes for layout for next state of the circle
+		['icon','image','text'].forEach(function(stateIterator){
+			if(state !== stateIterator)
+				circleEl.classList.remove('state-'+stateIterator);
+			else
+				circleEl.classList.add('state-'+stateIterator);
+		});
+
+		//@TODO: Animate in the new state.
+	}
 
 	function _performAction(state,index,animate,callback){
 
@@ -424,6 +488,8 @@ function PieInfographic(stats) {
 
 			var details = stats.details;			
 
+			var centerCircleEl = el.closest('svg').querySelector('circle.center-circle');
+
 			var icon = _createSVGElement('text',{
 				'font-family':'FontAwesome',
 				'x':'0',
@@ -441,15 +507,15 @@ function PieInfographic(stats) {
 
 			el.appendChild(iconGroup);
 
-			for(var i=0;i<details.length;i++){
+			for(var key in details){
 				
 				var detailGroup = _createSVGElement('g'),
 				background = _createSVGElement('circle'),
-				detail;
+				detailEl;
 
-				if(details[i].indexOf('jpg') !== -1){
+				if(details[key].indexOf('jpg') !== -1){
 
-					detail = _createSVGElement('image',{
+					detailEl = _createSVGElement('image',{
 							width: '43px',
 							height: '43px',
 							x:'-21.5',
@@ -457,34 +523,51 @@ function PieInfographic(stats) {
 							'clip-path':'url(#detailClipPath)'
 					});
 
-					detail.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[i]);
-				
+					detailEl.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[key]);
+					
+					detailGroup.addEventListener('click',function(){
+						_setStateForCenter(centerCircleEl,'image',{
+							image: details[key],
+							subhead: key,
+							detail: stats.name
+						})
+					});
+
 				}else{
 
-					detail = _createSVGElement('text',{
+					detailEl = _createSVGElement('text',{
 						'text-anchor':'middle',
 						'dominant-baseline':'central'
 					});
 
-					detail.innerHTML = details[i];
+					detailEl.innerHTML = details[key];
+
+					detailGroup.addEventListener('click',function(){
+						_setStateForCenter(centerCircleEl,'text',{
+							head:details[key],
+							subhead: key,
+							detail: stats.name
+						})
+					});
 				}
 
 				background.setAttribute('fill','white');
 				background.setAttribute('r','22.5');				
 
 				detailGroup.appendChild(background);
-				detailGroup.appendChild(detail);
+				detailGroup.appendChild(detailEl);
 				detailGroup.classList.add('detail');
+
+
 				
 				el.appendChild(detailGroup);
 			}
 
 		}
 
-		function _renderContentForPie(el,stats,center,radius){
+		function _renderContentForPie(el,center,radius){
 
-			var details = stats.details,
-			detailsGroupEl = el.querySelectorAll('g.detail'),
+			var detailsGroupEl = el.querySelectorAll('g.detail'),
 			offsetAngle = parseFloat(el.closest('svg').getAttribute('data-offset-angle')),
 			arcPoints = _getArcCoordinates(el.parentNode.querySelector('path')),
 			arcStartAngle = _cartesianToPolar(center,arcPoints[0]).theta,
@@ -497,13 +580,13 @@ function PieInfographic(stats) {
 				dividingAngle = 2*Math.PI - dividingAngle;
 			}
 
-			dividingAngle = dividingAngle/(details.length + 1);	
+			dividingAngle = dividingAngle/(detailsGroupEl.length + 1);	
 			dividingAngle = dividingAngle * 1.25; //spacing out the detail icons.
 
-			for(var i=0;i<details.length;i++){
+			for(var i=0;i<detailsGroupEl.length;i++){
 
 				var detailGroup = detailsGroupEl[i],
-				angle = centerAngle - (i - Math.floor(details.length/2)) * dividingAngle;
+				angle = centerAngle - (i - Math.floor(detailsGroupEl.length/2)) * dividingAngle;
 
 				if(angle < -2*Math.PI)
 					angle += 2 * Math.PI;
@@ -625,51 +708,75 @@ window.onload = function() {
 		graphic = new PieInfographic([{
 			color: '#5793F3',
 			icon: 'f09a',
-			details: [
-				'$1.8B', 'images/mark-zuckerberg.jpg' ,'117k'
-			]
+			name: 'facebook',
+			details: {
+				'revenue':'$1.8B', 
+				'ceo':'images/mark-zuckerberg.jpg' ,
+				'no-of-employees':'117k'			
+			}
 		}, {
 			color: '#DD4D79',
 			icon: 'f1a0',
-			details: [
-				 '$1.8B', 'images/larry-page.jpg' ,'117k'
-			]
+			name: 'google',
+			details: {
+				'revenue':'$1.8B', 
+				'ceo':'images/larry-page.jpg',
+				'no-of-employees':'117k'			
+			}			
 		}, {
 			color: '#BD3B47',
 			icon: 'f0e1',
-			details: [
-				 '$1.8B','images/jeff-weiner.jpg' , '117k'
-			]
+			name: 'linkedIn',
+			details: {
+				'revenue':'$1.8B', 
+				'ceo':'images/jeff-weiner.jpg',
+				'no-of-employees':'117k'			
+			}			
 		}, {
 			color: '#DD4444',
 			icon: 'f1ed',
-			details: [
-				 '$1.8B','images/dan-schulman.jpg' , '117k'
-			]
+			name: 'payPal',
+			details: {
+				'revenue':'$1.8B', 
+				'ceo':'images/dan-schulman.jpg',
+				'no-of-employees':'117k'			
+			}			
 		}, {
 			color: '#FD9C35',
 			icon: 'f099',
-			details: [
-				 '$1.8B', 'images/dick-costolo.jpg' , '117k'
-			]
+			name: 'twitter',
+			details: {
+				'revenue':'$1.8B', 
+				'ceo':'images/dick-costolo.jpg',
+				'no-of-employees':'117k'			
+			}			
 		}, {
 			color: '#FEC42C',
 			icon: 'f17a',
-			details: [
-				 '$1.8B', 'images/satya-nadella.jpg' , '117k'
-			]
+			name: 'microsoft',
+			details: {
+				'revenue':'$1.8B', 
+				'ceo':'images/satya-nadella.jpg',
+				'no-of-employees':'117k'			
+			}			
 		}, {
 			color: '#D4Df5A',
 			icon: 'f16b',
-			details: [
-				 '$1.8B', 'images/drew-houston.jpg' , '117k'
-			]
+			name: 'dropbox',
+			details: {
+				'revenue':'$1.8B', 
+				'ceo':'images/drew-houston.jpg',
+				'no-of-employees':'117k'			
+			}			
 		}, {
 			color: '#5578C2',
 			icon: 'f179',
-			details: [
-				 '$1.8B', 'images/tim-cook.jpg' , '117k'
-			]
+			name: 'apple',
+			details: {
+				'revenue':'$1.8B', 
+				'ceo':'images/tim-cook.jpg',
+				'no-of-employees':'117k'			
+			}			
 		}]);
 
 	graphic.render(graphicWrapper);

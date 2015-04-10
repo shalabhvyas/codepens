@@ -24,11 +24,17 @@
       opacity: 0;
       font-size: 15px; }
       .infographic-wrapper .content-group .detail.enter {
-        animation: fadeIn 2s ease-in 0s 1 normal forwards;
-        -webkit-animation: fadeIn 2s ease-in 0s 1 normal forwards; }
+        animation: fadeIn 0.75s ease-in 0s 1 normal forwards;
+        -webkit-animation: fadeIn 0.75s ease-in 0s 1 normal forwards; }
       .infographic-wrapper .content-group .detail.exit {
-        animation: fadeIn 0.2s ease-in 0s 1 reverse forwards;
-        -webkit-animation: fadeIn 0.2s ease-in 0s 1 reverse forwards; }
+        animation: fadeIn 0.2s ease-in 0s 1 reverse backwards;
+        -webkit-animation: fadeIn 0.2s ease-in 0s 1 reverse backwards; }
+  .infographic-wrapper .center-circle.icon text.subhead, .infographic-wrapper .center-circle.icon text.detail, .infographic-wrapper .center-circle.icon image {
+    display: none; }
+  .infographic-wrapper .center-circle.image text.head {
+    display: none; }
+  .infographic-wrapper .center-circle.text image {
+    display: none; }
 
 @keyframes fadeIn {
   0% {
