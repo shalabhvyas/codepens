@@ -98,14 +98,11 @@ function PieInfographic(stats) {
 			this._contentNodes.push(groupEl.appendChild(contentEl));
 			parentGroupEl.appendChild(groupEl);
 		}
-
-
 		
 		self._createDOMForCenter(svgEl);
 
-		//Create the clip-path defs.	
-		var defs = _createSVGElement('defs'),
-		clipPath = _createSVGElement('clipPath',{
+		//Create the clip-path defs.			
+		var clipPath = _createSVGElement('clipPath',{
 			'id':'detailClipPath'
 		}),
 		clipCircle = _createSVGElement('circle',{
@@ -114,10 +111,9 @@ function PieInfographic(stats) {
 		});
 
 		clipPath.appendChild(clipCircle);
-		defs.appendChild(clipPath);
-
-		svgEl.insertBefore(defs,svgEl.firstElement);
-
+		
+		_addDefinition(svgEl,clipPath);
+		
 		this._attachContent();
 
 		this._performAction('normal');
@@ -175,34 +171,70 @@ function PieInfographic(stats) {
 			'fill':'#393D45',
 			'cx': this._center.x,
 			'cy': this._center.y,
-			'r' : this._radius * 0.4,
-			'class': 'center-circle'
+			'r' : this._radius * 0.4			
+		}),
+		clipCircle = circleEl.cloneNode();
+
+		clipCircle.setAttribute('cx',this._radius * 0.4);
+		clipCircle.setAttribute('cy',this._radius * 0.4);		
+		clipCircle.removeAttribute('fill');
+
+		var clipPath = _createSVGElement('clipPath',{
+			id: 'centerClipPath'
 		});
 
-		//DOM for single icon view.
+		clipPath.appendChild(clipCircle);
+
 		var textHead = _createSVGElement('text',{
-			'class' : 'head'
+			x :  this._radius * 0.4,
+			y :  this._radius * 0.3,
+			class : 'head',
+			'text-anchor':'middle',
+			'dominant-baseline':'central',
+			'font-size': '40px'
 		}),
 		textSubHead = _createSVGElement('text',{
-			'class' : 'subhead'
+			x :  this._radius * 0.4,
+			y :  this._radius * 0.6,
+			class : 'subhead',
+			'text-anchor':'middle',
+			'dominant-baseline':'central'
 		}),
 		textDetail = _createSVGElement('text',{
-			'class' : 'detail'
+			x :  this._radius * 0.4,
+			y :  this._radius * 0.7,
+			class : 'detail',
+			'text-anchor':'middle',
+			'dominant-baseline':'central'
 		}),
 		image = _createSVGElement('image',{
-			'width': '100%',
-			'height': '100%'
+			width :  this._radius,
+			height :  this._radius,
+			x: '-' + this._radius * 0.1,
+			y: '-' + this._radius * 0.1,
+			'clip-path':'url(#centerClipPath)'
 		}),
-		contentGroup = _createSVGElement('g');
+		contentGroup = _createSVGElement('g',{
+			width :  this._radius * 0.8,
+			height :  this._radius * 0.8,
+			x: this._center.x - this._radius*0.4,
+			y: this._center.y - this._radius*0.4,
+			class: 'center-group'			
+		});
 
+		_setTransformProp(contentGroup,'translate',(this._center.x - this._radius*0.4) + 'px,' + 
+			(this._center.y - this._radius*0.4)+'px');
+
+		contentGroup.appendChild(image);
 		contentGroup.appendChild(textHead);
 		contentGroup.appendChild(textSubHead);
-		contentGroup.appendChild(textDetail);
-		contentGroup.appendChild(image);
+		contentGroup.appendChild(textDetail);		
 
-		circleEl.appendChild(contentGroup);
+		svgEl.appendChild(circleEl);
 
-		this._centerCircle = svgEl.appendChild(circleEl);
+		_addDefinition(svgEl,clipPath);
+
+		this._centerCircleGroup = svgEl.appendChild(contentGroup);
 	}
 
 	function _setStateForCenter(circleEl,state,details){		
@@ -220,13 +252,13 @@ function PieInfographic(stats) {
 		if(state === 'icon'){
 			textHead.innerHTML = '&#x' + details.icon;
 		}else if(state === 'text'){
-			textHead.innerHTML = details.head;
-			textSubHead.innerHTML = details.subhead;
-			textDetail.innerHTML = details.detail;
+			textHead.innerHTML = details.head.toUpperCase();
+			textSubHead.innerHTML = details.subhead.toUpperCase();
+			textDetail.innerHTML = details.detail.toUpperCase();
 		}else if(state === 'image'){
 			image.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details.image);
-			textSubHead.innerHTML = details.subhead;
-			textDetail.innerHTML = details.detail;
+			textSubHead.innerHTML = details.subhead.toUpperCase();
+			textDetail.innerHTML = details.detail.toUpperCase();
 		}
 
 		//Set classes for layout for next state of the circle
@@ -488,7 +520,7 @@ function PieInfographic(stats) {
 
 			var details = stats.details;			
 
-			var centerCircleEl = el.closest('svg').querySelector('circle.center-circle');
+			var centerCircleEl = el.closest('svg').querySelector('g.center-group');
 
 			var icon = _createSVGElement('text',{
 				'font-family':'FontAwesome',
@@ -510,7 +542,7 @@ function PieInfographic(stats) {
 			for(var key in details){
 				
 				var detailGroup = _createSVGElement('g'),
-				background = _createSVGElement('circle'),
+				background = _createSVGElement('circle'),				
 				detailEl;
 
 				if(details[key].indexOf('jpg') !== -1){
@@ -525,13 +557,17 @@ function PieInfographic(stats) {
 
 					detailEl.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[key]);
 					
-					detailGroup.addEventListener('click',function(){
-						_setStateForCenter(centerCircleEl,'image',{
-							image: details[key],
-							subhead: key,
-							detail: stats.name
-						})
-					});
+					detailGroup.addEventListener('click',function(currentKey){
+						
+						return function(){
+							_setStateForCenter(centerCircleEl,'image',{
+								image: details[currentKey],
+								subhead: currentKey,
+								detail: stats.name
+							});
+						};
+						
+					}(key));
 
 				}else{
 
@@ -542,13 +578,17 @@ function PieInfographic(stats) {
 
 					detailEl.innerHTML = details[key];
 
-					detailGroup.addEventListener('click',function(){
-						_setStateForCenter(centerCircleEl,'text',{
-							head:details[key],
-							subhead: key,
-							detail: stats.name
-						})
-					});
+					detailGroup.addEventListener('click',function(currentKey){
+						
+						return function(){
+							_setStateForCenter(centerCircleEl,'text',{
+								head:details[currentKey],
+								subhead: currentKey,
+								detail: stats.name
+							});
+						};
+
+					}(key));					
 				}
 
 				background.setAttribute('fill','white');
@@ -676,6 +716,15 @@ function PieInfographic(stats) {
 			}
 			
 			return el;
+		}
+
+		function _addDefinition(svgEl,defEl){
+			var defs = svgEl.querySelectorAll('defs')[0];
+
+			if(!defs || defs.length === 0){
+				defs = svgEl.appendChild(_createSVGElement('defs'));
+			}
+			defs.appendChild(defEl);
 		}
 
 		function _setTransformProp(el,prop,value){

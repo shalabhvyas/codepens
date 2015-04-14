@@ -29,11 +29,11 @@
       .infographic-wrapper .content-group .detail.exit {
         animation: fadeIn 0.2s ease-in 0s 1 reverse backwards;
         -webkit-animation: fadeIn 0.2s ease-in 0s 1 reverse backwards; }
-  .infographic-wrapper .center-circle.icon text.subhead, .infographic-wrapper .center-circle.icon text.detail, .infographic-wrapper .center-circle.icon image {
+  .infographic-wrapper .center-group.state-icon text.subhead, .infographic-wrapper .center-group.state-icon text.detail, .infographic-wrapper .center-group.state-icon image {
     display: none; }
-  .infographic-wrapper .center-circle.image text.head {
+  .infographic-wrapper .center-group.state-image text.head {
     display: none; }
-  .infographic-wrapper .center-circle.text image {
+  .infographic-wrapper .center-group.state-text image {
     display: none; }
 
 @keyframes fadeIn {

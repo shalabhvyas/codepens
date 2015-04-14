@@ -52,20 +52,20 @@
 		}
 	}
 
-	.center-circle{
-		&.icon{
+	.center-group{
+		&.state-icon{
 				text.subhead,text.detail,image{
 					display: none;
 				}
 		}
 
-		&.image{
+		&.state-image{
 				text.head{
 					display: none;
 				}
 		}
 
-		&.text{
+		&.state-text{
 				image{
 					display: none;
 				}
