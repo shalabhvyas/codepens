@@ -1,7 +1,8 @@
 .infographic-wrapper {
   width: 30vw;
   height: 30vw;
-  margin: auto; }
+  margin: auto;
+  font-family: 'Open Sans', sans-serif; }
   .infographic-wrapper svg {
     transition: transform 2s;
     -webkit-transition: -webkit-transform 2s; }
@@ -29,12 +30,17 @@
       .infographic-wrapper .content-group .detail.exit {
         animation: fadeIn 0.2s ease-in 0s 1 reverse backwards;
         -webkit-animation: fadeIn 0.2s ease-in 0s 1 reverse backwards; }
-  .infographic-wrapper .center-group.state-icon text.subhead, .infographic-wrapper .center-group.state-icon text.detail, .infographic-wrapper .center-group.state-icon image {
-    display: none; }
-  .infographic-wrapper .center-group.state-image text.head {
-    display: none; }
-  .infographic-wrapper .center-group.state-text image {
-    display: none; }
+  .infographic-wrapper .center-group {
+    transition: transform 2s;
+    -webkit-transition: -webkit-transform 2s;
+    transform-origin: center center;
+    -webkit-transform-origin: center center; }
+    .infographic-wrapper .center-group.state-icon text.head, .infographic-wrapper .center-group.state-icon text.subhead, .infographic-wrapper .center-group.state-icon text.detail, .infographic-wrapper .center-group.state-icon image {
+      display: none; }
+    .infographic-wrapper .center-group.state-image text.icon, .infographic-wrapper .center-group.state-image text.head {
+      display: none; }
+    .infographic-wrapper .center-group.state-text text.icon, .infographic-wrapper .center-group.state-text image {
+      display: none; }
 
 @keyframes fadeIn {
   0% {

@@ -2,6 +2,7 @@
 	width:30vw;
 	height:30vw;
 	margin:auto;
+	font-family: 'Open Sans', sans-serif;
 
 	svg{
 		transition: transform 2s;
@@ -53,20 +54,27 @@
 	}
 
 	.center-group{
+		
+		transition: transform 2s;
+    	-webkit-transition: -webkit-transform 2s;
+    	transform-origin: center center;
+    	-webkit-transform-origin: center center;
+
 		&.state-icon{
-				text.subhead,text.detail,image{
+
+				text.head,text.subhead,text.detail,image{
 					display: none;
 				}
 		}
 
 		&.state-image{
-				text.head{
+				text.icon,text.head{
 					display: none;
 				}
 		}
 
 		&.state-text{
-				image{
+				text.icon,image{
 					display: none;
 				}
 		}

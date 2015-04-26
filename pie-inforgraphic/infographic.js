@@ -9,6 +9,7 @@ function PieInfographic(stats) {
 	this._currentPie = -1;
 	this._center = 0;
 	this._radius = 0;
+	this._centerCircleGroup = null;
 	this._performAction = _performAction;
 	this._drawPie = _drawPie;
 	this._rotateGraphicToPie = _rotateGraphicToPie;
@@ -78,6 +79,11 @@ function PieInfographic(stats) {
 					//Bring all pies to normal state
 					self._performAction('normal',0,true,function(){
 
+
+						_setStateForCenter(self._centerCircleGroup,'icon',{
+							icon: stats[indexInParent].icon
+						});
+
 						//Rotate the graphic to center the clicked pie.
 						self._rotateGraphicToPie(indexInParent,function(){
 						
@@ -117,6 +123,12 @@ function PieInfographic(stats) {
 		this._attachContent();
 
 		this._performAction('normal');
+
+		_setStateForCenter(self._centerCircleGroup,'text',{
+			head: '8',
+			subhead: 'leading',
+			detail: 'companies'
+		});
 	}
 
 	function _rotateGraphicToPie(index,callback){
@@ -140,8 +152,11 @@ function PieInfographic(stats) {
 				event.target.removeEventListener(event.type, arguments.callee);
 			});
 
-		parentGroupEl.style.transform = 'rotate(' + (angleTo) + 'deg)';
-		parentGroupEl.style.webkitTransform = 'rotate(' + (angleTo) + 'deg)';
+		_setTransformProp(this._centerCircleGroup,'rotate', (-1*(angleTo)) + 'deg');
+		_setTransformProp(parentGroupEl,'rotate',(angleTo) + 'deg');
+
+		//parentGroupEl.style.transform = 'rotate(' + (angleTo) + 'deg)';
+		//parentGroupEl.style.webkitTransform = 'rotate(' + (angleTo) + 'deg)';
 
 		
 		for(var i = 0; i < this._contentNodes.length;i++){
@@ -185,10 +200,18 @@ function PieInfographic(stats) {
 
 		clipPath.appendChild(clipCircle);
 
-		var textHead = _createSVGElement('text',{
+		var textIcon = _createSVGElement('text',{
+			x :  this._radius * 0.4,
+			y :  this._radius * 0.4,
+			class : 'icon',
+			'font-family':'FontAwesome',
+			'text-anchor':'middle',
+			'dominant-baseline':'central',
+			'font-size': '60px'
+		}),textHead = _createSVGElement('text',{
 			x :  this._radius * 0.4,
 			y :  this._radius * 0.3,
-			class : 'head',
+			class : 'head',			
 			'text-anchor':'middle',
 			'dominant-baseline':'central',
 			'font-size': '40px'
@@ -197,6 +220,7 @@ function PieInfographic(stats) {
 			x :  this._radius * 0.4,
 			y :  this._radius * 0.6,
 			class : 'subhead',
+			'font-size' : '10px',
 			'text-anchor':'middle',
 			'dominant-baseline':'central'
 		}),
@@ -204,6 +228,7 @@ function PieInfographic(stats) {
 			x :  this._radius * 0.4,
 			y :  this._radius * 0.7,
 			class : 'detail',
+			'font-size' : '10px',
 			'text-anchor':'middle',
 			'dominant-baseline':'central'
 		}),
@@ -226,6 +251,7 @@ function PieInfographic(stats) {
 			(this._center.y - this._radius*0.4)+'px');
 
 		contentGroup.appendChild(image);
+		contentGroup.appendChild(textIcon);
 		contentGroup.appendChild(textHead);
 		contentGroup.appendChild(textSubHead);
 		contentGroup.appendChild(textDetail);		
@@ -239,8 +265,9 @@ function PieInfographic(stats) {
 
 	function _setStateForCenter(circleEl,state,details){		
 
-		var textHead,textSubHead,textDetail,image;
+		var textIcon,textHead,textSubHead,textDetail,image;
 
+		textIcon = circleEl.querySelectorAll('text.icon')[0];
 		textHead = circleEl.querySelectorAll('text.head')[0];
 		textSubHead = circleEl.querySelectorAll('text.subhead')[0];
 		textDetail = circleEl.querySelectorAll('text.detail')[0];
@@ -250,7 +277,7 @@ function PieInfographic(stats) {
 
 		//Set data for next state of the circle
 		if(state === 'icon'){
-			textHead.innerHTML = '&#x' + details.icon;
+			textIcon.innerHTML = '&#x' + details.icon;
 		}else if(state === 'text'){
 			textHead.innerHTML = details.head.toUpperCase();
 			textSubHead.innerHTML = details.subhead.toUpperCase();
@@ -525,7 +552,7 @@ function PieInfographic(stats) {
 			var icon = _createSVGElement('text',{
 				'font-family':'FontAwesome',
 				'x':'0',
-				'y':'0',
+				'y':'0',				
 				'fill':'white',
 				'text-anchor':'middle',
 				'dominant-baseline':'central'
@@ -545,7 +572,7 @@ function PieInfographic(stats) {
 				background = _createSVGElement('circle'),				
 				detailEl;
 
-				if(details[key].indexOf('jpg') !== -1){
+				if(typeof details[key].image !== 'undefined'){
 
 					detailEl = _createSVGElement('image',{
 							width: '43px',
@@ -555,15 +582,15 @@ function PieInfographic(stats) {
 							'clip-path':'url(#detailClipPath)'
 					});
 
-					detailEl.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[key]);
+					detailEl.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[key].image);
 					
 					detailGroup.addEventListener('click',function(currentKey){
 						
 						return function(){
 							_setStateForCenter(centerCircleEl,'image',{
-								image: details[currentKey],
-								subhead: currentKey,
-								detail: stats.name
+								image: details[currentKey].image,
+								subhead: details[currentKey].label,
+								detail: currentKey+','+stats.name
 							});
 						};
 						
@@ -760,7 +787,10 @@ window.onload = function() {
 			name: 'facebook',
 			details: {
 				'revenue':'$1.8B', 
-				'ceo':'images/mark-zuckerberg.jpg' ,
+				'ceo':{
+							'label': 'Mark Zuckerberg',
+							'image': 'images/mark-zuckerberg.jpg'
+					},
 				'no-of-employees':'117k'			
 			}
 		}, {
@@ -769,7 +799,10 @@ window.onload = function() {
 			name: 'google',
 			details: {
 				'revenue':'$1.8B', 
-				'ceo':'images/larry-page.jpg',
+				'ceo':{
+							'label': 'Larry Page',
+							'image': 'images/larry-page.jpg'
+					},
 				'no-of-employees':'117k'			
 			}			
 		}, {
@@ -778,7 +811,10 @@ window.onload = function() {
 			name: 'linkedIn',
 			details: {
 				'revenue':'$1.8B', 
-				'ceo':'images/jeff-weiner.jpg',
+				'ceo':{
+							'label': 'Jeff Weiner',
+							'image': 'images/jeff-weiner.jpg'
+					},
 				'no-of-employees':'117k'			
 			}			
 		}, {
@@ -787,7 +823,10 @@ window.onload = function() {
 			name: 'payPal',
 			details: {
 				'revenue':'$1.8B', 
-				'ceo':'images/dan-schulman.jpg',
+				'ceo':{
+							'label': 'Dan Schulman',
+							'image': 'images/dan-schulman.jpg'
+					},
 				'no-of-employees':'117k'			
 			}			
 		}, {
@@ -796,7 +835,10 @@ window.onload = function() {
 			name: 'twitter',
 			details: {
 				'revenue':'$1.8B', 
-				'ceo':'images/dick-costolo.jpg',
+				'ceo':{
+							'label': 'Dick Costolo',
+							'image': 'images/dick-costolo.jpg'
+					},
 				'no-of-employees':'117k'			
 			}			
 		}, {
@@ -805,7 +847,10 @@ window.onload = function() {
 			name: 'microsoft',
 			details: {
 				'revenue':'$1.8B', 
-				'ceo':'images/satya-nadella.jpg',
+				'ceo':{
+							'label': 'Satya Nadella',
+							'image': 'images/satya-nadella.jpg'
+					},
 				'no-of-employees':'117k'			
 			}			
 		}, {
@@ -814,7 +859,10 @@ window.onload = function() {
 			name: 'dropbox',
 			details: {
 				'revenue':'$1.8B', 
-				'ceo':'images/drew-houston.jpg',
+				'ceo':{
+							'label': 'Drew Houston',
+							'image': 'images/drew-houston.jpg'
+					},
 				'no-of-employees':'117k'			
 			}			
 		}, {
@@ -823,7 +871,10 @@ window.onload = function() {
 			name: 'apple',
 			details: {
 				'revenue':'$1.8B', 
-				'ceo':'images/tim-cook.jpg',
+				'ceo':{
+							'label': 'Tim Cook',
+							'image': 'images/tim-cook.jpg'
+					},
 				'no-of-employees':'117k'			
 			}			
 		}]);
