@@ -96,6 +96,8 @@ function PieInfographic(stats) {
 							});
 						});							
 					});
+
+					event.stopPropagation();
 			});
 
 			this._pathNodes.push(groupEl.appendChild(pathEl));
@@ -132,7 +134,7 @@ function PieInfographic(stats) {
 	}
 
 	function _rotateGraphicToPie(index,callback){
-		var parentGroupEl = this._pathNodes[0].parentNode.parentNode.parentNode,
+		var parentGroupEl = this._pathNodes[0].parentNode.parentNode,
 		angleFrom  = parseFloat(parentGroupEl.getAttribute('data-offset-angle')) || 0,
 		angleTo = -1 * (index * this._angles.baseAngle * 180/ Math.PI);
 
@@ -152,28 +154,22 @@ function PieInfographic(stats) {
 				event.target.removeEventListener(event.type, arguments.callee);
 			});
 
-		_setTransformProp(this._centerCircleGroup,'rotate', (-1*(angleTo)) + 'deg');
-		_setTransformProp(parentGroupEl,'rotate',(angleTo) + 'deg');
+		_setTransformProp(parentGroupEl,'rotate',(angleTo) + 'deg');		
 
-		//parentGroupEl.style.transform = 'rotate(' + (angleTo) + 'deg)';
-		//parentGroupEl.style.webkitTransform = 'rotate(' + (angleTo) + 'deg)';
-
-		
 		for(var i = 0; i < this._contentNodes.length;i++){
 
 			var icon = this._contentNodes[i].querySelector('g.icon-group');
 
 			icon.transition = 'transform 2s';
 			icon.style.webkitTransition = '-webkit-transform 2s';
-				
+					
 			icon.addEventListener('transitionend',function(event){
-				event.target.style.transition = '';
-				event.target.style.webkitTransition = '';
-				event.target.removeEventListener(event.type, arguments.callee);
+					event.target.style.transition = '';
+					event.target.style.webkitTransition = '';
+					event.target.removeEventListener(event.type, arguments.callee);
 			});	
 
 			_setTransformProp(icon,'rotate',(-1 * angleTo) + 'deg');
-		
 		}
 
 		parentGroupEl.setAttribute('data-offset-angle',angleTo);
@@ -242,13 +238,11 @@ function PieInfographic(stats) {
 		contentGroup = _createSVGElement('g',{
 			width :  this._radius * 0.8,
 			height :  this._radius * 0.8,
-			x: this._center.x - this._radius*0.4,
-			y: this._center.y - this._radius*0.4,
 			class: 'center-group'			
 		});
 
 		_setTransformProp(contentGroup,'translate',(this._center.x - this._radius*0.4) + 'px,' + 
-			(this._center.y - this._radius*0.4)+'px');
+				(this._center.y - this._radius*0.4)+'px');
 
 		contentGroup.appendChild(image);
 		contentGroup.appendChild(textIcon);
@@ -260,7 +254,7 @@ function PieInfographic(stats) {
 
 		_addDefinition(svgEl,clipPath);
 
-		this._centerCircleGroup = svgEl.appendChild(contentGroup);
+		this._centerCircleGroup = svgEl.appendChild(contentGroup);		
 	}
 
 	function _setStateForCenter(circleEl,state,details){		
@@ -605,9 +599,15 @@ function PieInfographic(stats) {
 
 					detailEl.innerHTML = details[key];
 
-					detailGroup.addEventListener('click',function(currentKey){
+					detailGroup.addEventListener('click',function(event,currentKey){
 						
-						return function(){
+						return function(event){
+
+							if(event.currentTarget.closest('g[data-state="normal"]')){
+								//TODO: Propogate event to parent
+								return true;
+							}
+
 							_setStateForCenter(centerCircleEl,'text',{
 								head:details[currentKey],
 								subhead: currentKey,
@@ -615,7 +615,7 @@ function PieInfographic(stats) {
 							});
 						};
 
-					}(key));					
+					}(event,key));					
 				}
 
 				background.setAttribute('fill','white');
@@ -635,7 +635,7 @@ function PieInfographic(stats) {
 		function _renderContentForPie(el,center,radius){
 
 			var detailsGroupEl = el.querySelectorAll('g.detail'),
-			offsetAngle = parseFloat(el.closest('svg').getAttribute('data-offset-angle')),
+			offsetAngle = parseFloat(el.closest('g.outer-group').getAttribute('data-offset-angle')),
 			arcPoints = _getArcCoordinates(el.parentNode.querySelector('path')),
 			arcStartAngle = _cartesianToPolar(center,arcPoints[0]).theta,
 			arcEndAngle = _cartesianToPolar(center,arcPoints[1]).theta,			
@@ -668,6 +668,8 @@ function PieInfographic(stats) {
 				detailGroup.classList.remove('exit');
 				detailGroup.classList.add('enter');
 			}
+
+			console.log('Done rendering content for current pie');	
 
 			//TODO: Animate the details in after positioning.
 		}
