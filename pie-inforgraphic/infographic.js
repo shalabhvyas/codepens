@@ -758,15 +758,20 @@ function PieInfographic(stats) {
 
 		function _setTransformProp(el,prop,value){
 
-			if(el.style.transform.indexOf(prop) === -1)
-				el.style.transform = el.style.transform + prop + '(' + value + ')';
+			var currentTransform = el.style.transform ||
+				el.style.webkitTransform,
+				targetTransform;	
+
+
+			if(currentTransform.indexOf(prop) === -1)
+				targetTransform = currentTransform + prop + '(' + value + ')';
 			else{
-				var oldValue = el.style.transform.split(prop+'(')[1]
+				var oldValue = currentTransform.split(prop+'(')[1]
 								.split(')')[0];
-				el.style.transform = el.style.transform.replace(oldValue,value);
+				targetTransform = currentTransform.replace(oldValue,value);
 			}
 
-			el.style.webkitTransform = el.style.transform;
+			el.style.webkitTransform = el.style.transform = targetTransform;
 
 		}
 
