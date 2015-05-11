@@ -66,9 +66,13 @@ function PieInfographic(stats) {
 			groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 			pathEl.setAttribute('fill', stats[i].color);
 			
-			pathEl.addEventListener('click',function(event){
+			groupEl.addEventListener('click',function(event){
 
-					var indexInParent = self._pathNodes.indexOf(event.target),
+					if(this.getAttribute('data-state') === 'expand'){
+						return;
+					}
+
+					var indexInParent = self._pathNodes.indexOf(this.getElementsByTagName('path')[0]),
 					currentGroupEl;
 
 					if(self._currentPie >= 0){
@@ -90,7 +94,7 @@ function PieInfographic(stats) {
 							//Expand/shrink pies based on the clicked pie.
 							self._performAction('expand', indexInParent,true,function(){
 
-								_renderContentForPie(event.target.nextSibling,self._center,self._radius);
+								_renderContentForPie(self._pathNodes[indexInParent].nextSibling,self._center,self._radius);
 								self._currentPie = indexInParent;
 
 							});
@@ -223,7 +227,7 @@ function PieInfographic(stats) {
 		textDetail = _createSVGElement('text',{
 			x :  this._radius * 0.4,
 			y :  this._radius * 0.7,
-			class : 'detail',
+			class : 'detail',			
 			'font-size' : '10px',
 			'text-anchor':'middle',
 			'dominant-baseline':'central'
@@ -233,22 +237,34 @@ function PieInfographic(stats) {
 			height :  this._radius,
 			x: '-' + this._radius * 0.1,
 			y: '-' + this._radius * 0.1,
+			fill: 'white',
+			'clip-path':'url(#centerClipPath)'
+		}),
+		detailRect = _createSVGElement('rect',{
+			width :  this._radius * 0.8,
+			height :  this._radius * 0.4,
+			y: this._radius * 0.55,
+			class: 'detail-group',
+			'fill':'#393D45',	
 			'clip-path':'url(#centerClipPath)'
 		}),
 		contentGroup = _createSVGElement('g',{
 			width :  this._radius * 0.8,
 			height :  this._radius * 0.8,
-			class: 'center-group'			
+			class: 'center-group',
+			fill: 'white'			
 		});
 
 		_setTransformProp(contentGroup,'translate',(this._center.x - this._radius*0.4) + 'px,' + 
 				(this._center.y - this._radius*0.4)+'px');
-
+				
 		contentGroup.appendChild(image);
-		contentGroup.appendChild(textIcon);
+		contentGroup.appendChild(textIcon);		
 		contentGroup.appendChild(textHead);
+		contentGroup.appendChild(detailRect);
 		contentGroup.appendChild(textSubHead);
-		contentGroup.appendChild(textDetail);		
+		contentGroup.appendChild(textDetail);
+		
 
 		svgEl.appendChild(circleEl);
 
@@ -578,17 +594,24 @@ function PieInfographic(stats) {
 
 					detailEl.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[key].image);
 					
-					detailGroup.addEventListener('click',function(currentKey){
+					detailGroup.addEventListener('click',function(event,currentKey){
 						
-						return function(){
+						return function(event){
+
+							if(event.currentTarget.closest('g[data-state="shrink"]') ||
+								event.currentTarget.closest('g[data-state="normal"]')){								
+								return true;
+							}
+
 							_setStateForCenter(centerCircleEl,'image',{
 								image: details[currentKey].image,
 								subhead: details[currentKey].label,
 								detail: currentKey+','+stats.name
 							});
+							return false;
 						};
 						
-					}(key));
+					}(event,key));
 
 				}else{
 
@@ -603,8 +626,8 @@ function PieInfographic(stats) {
 						
 						return function(event){
 
-							if(event.currentTarget.closest('g[data-state="normal"]')){
-								//TODO: Propogate event to parent
+							if(event.currentTarget.closest('g[data-state="shrink"]') ||
+								event.currentTarget.closest('g[data-state="normal"]')){								
 								return true;
 							}
 
@@ -613,6 +636,7 @@ function PieInfographic(stats) {
 								subhead: currentKey,
 								detail: stats.name
 							});
+							return false;
 						};
 
 					}(event,key));					
@@ -624,8 +648,6 @@ function PieInfographic(stats) {
 				detailGroup.appendChild(background);
 				detailGroup.appendChild(detailEl);
 				detailGroup.classList.add('detail');
-
-
 				
 				el.appendChild(detailGroup);
 			}

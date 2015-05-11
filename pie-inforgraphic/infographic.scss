@@ -60,7 +60,7 @@
 
 		&.state-icon{
 
-				text.head,text.subhead,text.detail,image{
+				text.head,text.subhead,text.detail,image,rect{
 					display: none;
 				}
 		}
@@ -72,7 +72,7 @@
 		}
 
 		&.state-text{
-				text.icon,image{
+				text.icon,image,rect{
 					display: none;
 				}
 		}

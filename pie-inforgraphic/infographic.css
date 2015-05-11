@@ -35,11 +35,11 @@
     -webkit-transition: -webkit-transform 2s;
     transform-origin: center center;
     -webkit-transform-origin: center center; }
-    .infographic-wrapper .center-group.state-icon text.head, .infographic-wrapper .center-group.state-icon text.subhead, .infographic-wrapper .center-group.state-icon text.detail, .infographic-wrapper .center-group.state-icon image {
+    .infographic-wrapper .center-group.state-icon text.head, .infographic-wrapper .center-group.state-icon text.subhead, .infographic-wrapper .center-group.state-icon text.detail, .infographic-wrapper .center-group.state-icon image, .infographic-wrapper .center-group.state-icon rect {
       display: none; }
     .infographic-wrapper .center-group.state-image text.icon, .infographic-wrapper .center-group.state-image text.head {
       display: none; }
-    .infographic-wrapper .center-group.state-text text.icon, .infographic-wrapper .center-group.state-text image {
+    .infographic-wrapper .center-group.state-text text.icon, .infographic-wrapper .center-group.state-text image, .infographic-wrapper .center-group.state-text rect {
       display: none; }
 
 @keyframes fadeIn {
