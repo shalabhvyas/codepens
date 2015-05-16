@@ -314,7 +314,7 @@ function PieInfographic(stats) {
 			textIcon.textContent = details.icon;
 		}else if(state === 'text'){
 			textHead.textContent = details.head.toUpperCase();
-			textSubHead.textContent = details.subhead.toUpperCase();
+			textSubHead.textContent = details.subhead.toUpperCase().replace('-',' ').replace('-',' ');
 			textDetail.textContent = details.detail.toUpperCase();
 		}else if(state === 'image'){
 			image.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details.image);
@@ -644,7 +644,7 @@ function PieInfographic(stats) {
 						'dominant-baseline':'central'
 					});
 
-					detailEl.textContent = details[key];
+					detailEl.textContent = details[key].toUpperCase();
 
 					detailGroup.addEventListener('click',function(currentKey){
 						
@@ -870,96 +870,96 @@ window.onload = function() {
 			icon: '\uf09a',
 			name: 'facebook',
 			details: {
-				'revenue':'$1.8B', 
+				'revenue':'$12B', 
 				'ceo':{
 							'label': 'Mark Zuckerberg',
 							'image': 'images/mark-zuckerberg.jpg'
 					},
-				'no-of-employees':'117k'			
+				'no-of-employees':'10k'			
 			}
 		}, {
 			color: '#DD4D79',
 			icon: '\uf1a0',
 			name: 'google',
 			details: {
-				'revenue':'$1.8B', 
+				'revenue':'$66B', 
 				'ceo':{
 							'label': 'Larry Page',
 							'image': 'images/larry-page.jpg'
 					},
-				'no-of-employees':'117k'			
+				'no-of-employees':'47k'			
 			}			
 		}, {
 			color: '#BD3B47',
 			icon: '\uf0e1',
 			name: 'linkedIn',
 			details: {
-				'revenue':'$1.8B', 
+				'revenue':'$2.2B', 
 				'ceo':{
 							'label': 'Jeff Weiner',
 							'image': 'images/jeff-weiner.jpg'
 					},
-				'no-of-employees':'117k'			
+				'no-of-employees':'7.6k'			
 			}			
 		}, {
 			color: '#DD4444',
 			icon: '\uf1ed',
 			name: 'payPal',
 			details: {
-				'revenue':'$1.8B', 
+				'revenue':'$7.9B', 
 				'ceo':{
 							'label': 'Dan Schulman',
 							'image': 'images/dan-schulman.jpg'
 					},
-				'no-of-employees':'117k'			
+				'no-of-employees':'13k'			
 			}			
 		}, {
 			color: '#FD9C35',
 			icon: '\uf099',
 			name: 'twitter',
 			details: {
-				'revenue':'$1.8B', 
+				'revenue':'$1.4B', 
 				'ceo':{
 							'label': 'Dick Costolo',
 							'image': 'images/dick-costolo.jpg'
 					},
-				'no-of-employees':'117k'			
+				'no-of-employees':'2k'			
 			}			
 		}, {
 			color: '#FEC42C',
 			icon: '\uf17a',
 			name: 'microsoft',
 			details: {
-				'revenue':'$1.8B', 
+				'revenue':'$86B', 
 				'ceo':{
 							'label': 'Satya Nadella',
 							'image': 'images/satya-nadella.jpg'
 					},
-				'no-of-employees':'117k'			
+				'no-of-employees':'128k'			
 			}			
 		}, {
 			color: '#D4Df5A',
 			icon: '\uf16b',
 			name: 'dropbox',
 			details: {
-				'revenue':'$1.8B', 
+				'revenue':'$0.2B', 
 				'ceo':{
 							'label': 'Drew Houston',
 							'image': 'images/drew-houston.jpg'
 					},
-				'no-of-employees':'117k'			
+				'no-of-employees':'600'			
 			}			
 		}, {
 			color: '#5578C2',
 			icon: '\uf179',
 			name: 'apple',
 			details: {
-				'revenue':'$1.8B', 
+				'revenue':'$199B', 
 				'ceo':{
 							'label': 'Tim Cook',
 							'image': 'images/tim-cook.jpg'
 					},
-				'no-of-employees':'117k'			
+				'no-of-employees':'98k'			
 			}			
 		}]);
 
