@@ -18,6 +18,7 @@ function PieInfographic(stats) {
 	this._setDataAttributes = _setDataAttributes;
 	this._getNextIncrement = _getNextIncrement;	
 	this._attachContent = _attachContent;
+	this._detailAnimations = [];
 
 	function render(parentEl) {
 
@@ -77,7 +78,7 @@ function PieInfographic(stats) {
 
 					if(self._currentPie >= 0){
 						currentGroupEl = self._pathNodes[self._currentPie];
-						_hideContentForPie(currentGroupEl.nextSibling);
+						_hideContentForPie(currentGroupEl.nextSibling,self._detailAnimations[1]);
 					}
 
 					//Bring all pies to normal state
@@ -94,7 +95,7 @@ function PieInfographic(stats) {
 							//Expand/shrink pies based on the clicked pie.
 							self._performAction('expand', indexInParent,true,function(){
 
-								_renderContentForPie(self._pathNodes[indexInParent].nextSibling,self._center,self._radius);
+								_renderContentForPie(self._pathNodes[indexInParent].nextSibling,self._center,self._radius,self._detailAnimations);
 								self._currentPie = indexInParent;
 
 							});
@@ -120,11 +121,33 @@ function PieInfographic(stats) {
 		clipCircle = _createSVGElement('circle',{
 			'r':'21.5',
 			'stroke':'white'
+		}),
+		detailAnimationEnter = _createSVGElement('animate',{
+			id:'animation-enter',
+			attributeName : 'opacity',
+            from: 0,
+            to : 1,
+            dur: '1s',
+            begin: '0s',
+            fill: 'freeze'
+		}),
+		detailAnimationExit = _createSVGElement('animate',{
+			id:'animation-exit',
+			attributeName : 'opacity',
+            from: 1,
+            to : 0,
+            dur: '1s',
+            begin: '0s',
+            fill: 'freeze'
 		});
 
 		clipPath.appendChild(clipCircle);
 		
 		_addDefinition(svgEl,clipPath);
+
+		//SVG based opacity-animation since Safari does not support CSS opacity animation on SVG group tags.
+		this._detailAnimations.push(detailAnimationEnter);
+		this._detailAnimations.push(detailAnimationExit);
 		
 		this._attachContent();
 
@@ -287,15 +310,16 @@ function PieInfographic(stats) {
 
 		//Set data for next state of the circle
 		if(state === 'icon'){
-			textIcon.innerHTML = '&#x' + details.icon;
+			//textIcon.textContent = '\uf0e1';
+			textIcon.textContent = details.icon;
 		}else if(state === 'text'){
-			textHead.innerHTML = details.head.toUpperCase();
-			textSubHead.innerHTML = details.subhead.toUpperCase();
-			textDetail.innerHTML = details.detail.toUpperCase();
+			textHead.textContent = details.head.toUpperCase();
+			textSubHead.textContent = details.subhead.toUpperCase();
+			textDetail.textContent = details.detail.toUpperCase();
 		}else if(state === 'image'){
 			image.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details.image);
-			textSubHead.innerHTML = details.subhead.toUpperCase();
-			textDetail.innerHTML = details.detail.toUpperCase();
+			textSubHead.textContent = details.subhead.toUpperCase();
+			textDetail.textContent = details.detail.toUpperCase();
 		}
 
 		//Set classes for layout for next state of the circle
@@ -571,7 +595,7 @@ function PieInfographic(stats) {
 				'class':'icon-group'
 			});
 			
-			icon.innerHTML = '&#x' + stats.icon;
+			icon.textContent = stats.icon;
 			iconGroup.appendChild(icon);
 
 			el.appendChild(iconGroup);
@@ -594,7 +618,7 @@ function PieInfographic(stats) {
 
 					detailEl.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',details[key].image);
 					
-					detailGroup.addEventListener('click',function(event,currentKey){
+					detailGroup.addEventListener('click',function(currentKey){
 						
 						return function(event){
 
@@ -611,7 +635,7 @@ function PieInfographic(stats) {
 							return false;
 						};
 						
-					}(event,key));
+					}(key));
 
 				}else{
 
@@ -620,9 +644,9 @@ function PieInfographic(stats) {
 						'dominant-baseline':'central'
 					});
 
-					detailEl.innerHTML = details[key];
+					detailEl.textContent = details[key];
 
-					detailGroup.addEventListener('click',function(event,currentKey){
+					detailGroup.addEventListener('click',function(currentKey){
 						
 						return function(event){
 
@@ -639,7 +663,7 @@ function PieInfographic(stats) {
 							return false;
 						};
 
-					}(event,key));					
+					}(key));					
 				}
 
 				background.setAttribute('fill','white');
@@ -654,7 +678,7 @@ function PieInfographic(stats) {
 
 		}
 
-		function _renderContentForPie(el,center,radius){
+		function _renderContentForPie(el,center,radius,animations){
 
 			var detailsGroupEl = el.querySelectorAll('g.detail'),
 			offsetAngle = parseFloat(el.closest('g.outer-group').getAttribute('data-offset-angle')),
@@ -687,21 +711,23 @@ function PieInfographic(stats) {
 				_setTransformProp(detailGroup,'translate',(position.x - centerCoordinates.x)+'px, ' + (position.y - centerCoordinates.y)+'px');
 				_setTransformProp(detailGroup,'rotate',(-1 * offsetAngle) + 'deg');
 
-				detailGroup.classList.remove('exit');
-				detailGroup.classList.add('enter');
-			}
+				if(detailGroup.lastElementChild.tagName === 'animate')
+					detailGroup.lastElementChild.remove();
 
-			console.log('Done rendering content for current pie');	
+				detailGroup.appendChild(animations[0].cloneNode());				
+			}
 
 			//TODO: Animate the details in after positioning.
 		}
 
-		function _hideContentForPie(el){
+		function _hideContentForPie(el,animation){
 			var detailsGroupEl = detailsGroupEl = el.querySelectorAll('g.detail');
 
 			for(var i=0; i < detailsGroupEl.length; i++){
-				detailsGroupEl[i].classList.remove('enter')
-				detailsGroupEl[i].classList.add('exit');
+				if(detailsGroupEl[i].lastElementChild.tagName === 'animate')
+					detailsGroupEl[i].lastElementChild.remove();
+
+				detailsGroupEl[i].appendChild(animation.cloneNode());
 			}
 		}
 
@@ -780,9 +806,15 @@ function PieInfographic(stats) {
 
 		function _setTransformProp(el,prop,value){
 
-			var currentTransform = el.style.transform ||
-				el.style.webkitTransform,
-				targetTransform;	
+			var currentTransform = el.style.transform,
+			targetTransform;
+
+			if(currentTransform === undefined)
+				currentTransform = el.style.webkitTransform;
+			 
+			if(currentTransform === undefined)
+				currentTransform = el.style.MozTransform;
+					
 
 
 			if(currentTransform.indexOf(prop) === -1)
@@ -809,10 +841,33 @@ function PieInfographic(stats) {
 }
 
 window.onload = function() {
+
+	//Create implementation of closest() for Safari.
+	(function (ELEMENT) {
+		ELEMENT.matches = ELEMENT.matches
+			|| ELEMENT.msMatchesSelector
+			|| ELEMENT.mozMatchesSelector
+			|| ELEMENT.webkitMatchesSelector;
+
+		ELEMENT.closest = ELEMENT.closest || function (selector) {
+			var node = this;
+
+			while (node) {
+				if (node.matches(selector)) {
+					break;
+				}
+				node = node.parentElement;
+			}
+
+			return node;
+		};
+	}(Element.prototype));
+
+
 	var graphicWrapper = document.getElementsByTagName('div')[0],
 		graphic = new PieInfographic([{
 			color: '#5793F3',
-			icon: 'f09a',
+			icon: '\uf09a',
 			name: 'facebook',
 			details: {
 				'revenue':'$1.8B', 
@@ -824,7 +879,7 @@ window.onload = function() {
 			}
 		}, {
 			color: '#DD4D79',
-			icon: 'f1a0',
+			icon: '\uf1a0',
 			name: 'google',
 			details: {
 				'revenue':'$1.8B', 
@@ -836,7 +891,7 @@ window.onload = function() {
 			}			
 		}, {
 			color: '#BD3B47',
-			icon: 'f0e1',
+			icon: '\uf0e1',
 			name: 'linkedIn',
 			details: {
 				'revenue':'$1.8B', 
@@ -848,7 +903,7 @@ window.onload = function() {
 			}			
 		}, {
 			color: '#DD4444',
-			icon: 'f1ed',
+			icon: '\uf1ed',
 			name: 'payPal',
 			details: {
 				'revenue':'$1.8B', 
@@ -860,7 +915,7 @@ window.onload = function() {
 			}			
 		}, {
 			color: '#FD9C35',
-			icon: 'f099',
+			icon: '\uf099',
 			name: 'twitter',
 			details: {
 				'revenue':'$1.8B', 
@@ -872,7 +927,7 @@ window.onload = function() {
 			}			
 		}, {
 			color: '#FEC42C',
-			icon: 'f17a',
+			icon: '\uf17a',
 			name: 'microsoft',
 			details: {
 				'revenue':'$1.8B', 
@@ -884,7 +939,7 @@ window.onload = function() {
 			}			
 		}, {
 			color: '#D4Df5A',
-			icon: 'f16b',
+			icon: '\uf16b',
 			name: 'dropbox',
 			details: {
 				'revenue':'$1.8B', 
@@ -896,7 +951,7 @@ window.onload = function() {
 			}			
 		}, {
 			color: '#5578C2',
-			icon: 'f179',
+			icon: '\uf179',
 			name: 'apple',
 			details: {
 				'revenue':'$1.8B', 

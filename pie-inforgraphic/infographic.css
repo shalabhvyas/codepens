@@ -6,7 +6,8 @@
   font-weight: 300; }
   .infographic-wrapper .outer-group, .infographic-wrapper .content-group .icon-group {
     transform-origin: 50% 50%;
-    -webkit-transform-origin: 50% 50%; }
+    -webkit-transform-origin: 50% 50%;
+    -moz-transform-origin: 50% 50%; }
   .infographic-wrapper .outer-group {
     width: 100%;
     height: 100%;
