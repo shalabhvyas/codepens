@@ -1,0 +1,14 @@
+body   {
+  background: #1BAFE9;
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  color: #fff;
+}
+
+h2  {
+  font-weight:300;
+}
+
+.areaChart  {
+    margin:auto;
+}

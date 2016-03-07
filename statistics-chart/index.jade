@@ -1,0 +1,9 @@
+doctype html
+html(lang="en")
+  head
+    title Statistics Chart
+    link(rel='stylesheet', href = 'statistics-chart.css')
+    script(src='statistics-chart.js', type = 'text/javascript')
+  body(ng-app="myApp")
+    h2 Top Snowfall at U.S. Ski Resorts (source: onthesnow.com)
+    div(area-chart style='width:80%;height:300px;' values='values' class='areaChart')

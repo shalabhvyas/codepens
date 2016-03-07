@@ -1,0 +1,15 @@
+@import url(https://fonts.googleapis.com/css?family=Montserrat:400,700);
+
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.chart-pipeline{
+  margin:auto;
+  width: 80vw;
+  height: 25rem;
+  svg {
+    height: 100%;
+    width: 100%;
+  }
+}
