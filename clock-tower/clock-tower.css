@@ -1,0 +1,171 @@
+/**
+ * Structures:
+ * 1. Reusable 2-pillar mixin.
+ * 2. Pillar doors.
+ * 3. Pillar windows.
+ * 4. Pillar domes.
+ * 5. Flag posts.
+ * 6. Reusable flag shape.
+ * 7. Tree
+ * 8. Bushes
+ * 9. Floor
+ */
+/**
+ * Color pallete
+ */
+body {
+  background: #E4AE48; }
+
+/**
+ * Mixin pillar
+ */
+.pillar {
+  background: #A03F2C;
+  margin: 0;
+  transform-style: preserve-3d;
+  /**
+   * Pillars as towers
+   */
+  /**
+   * Pillars as supports
+   */
+  /**
+   * Pillars with windows at top
+   */ }
+  .pillar:before {
+    background: #F27031;
+    content: ' ';
+    display: block;
+    height: 102%;
+    position: relative;
+    transform-origin: bottom left;
+    transform: skewY(2deg);
+    width: 145%;
+    left: -145%; }
+  .pillar.is-tower {
+    width: 12%;
+    height: 60%;
+    margin: 150px 50% 0; }
+    .pillar.is-tower:before {
+      top: -9px; }
+    .pillar.is-tower .door {
+      position: absolute;
+      bottom: 0;
+      left: 20%; }
+      .pillar.is-tower .door:nth-child(1) {
+        background: #A03F2C;
+        left: -100%; }
+      .pillar.is-tower .door:nth-child(2) {
+        background: #F27031; }
+  .pillar.is-support {
+    border-top: 1px solid;
+    border-right: 1px solid;
+    border-color: #AE5230;
+    width: 95%;
+    height: 26px;
+    position: absolute;
+    top: -24px;
+    transform: translateX(10px);
+    z-index: 1; }
+    .pillar.is-support:before {
+      border-top: 1px solid #F17A34;
+      transform: skewY(1deg);
+      top: -2px;
+      width: 175%;
+      left: -175%; }
+    .pillar.is-support .dome {
+      position: absolute;
+      top: -18px;
+      left: 16px; }
+      .pillar.is-support .dome:nth-child(1) {
+        background: #F27031;
+        left: -90%; }
+      .pillar.is-support .dome:nth-child(2) {
+        background: #A03F2C; }
+  .pillar.has-windows {
+    width: 100%;
+    height: 25%;
+    position: absolute;
+    top: -90px;
+    transform: translateX(-10px); }
+    .pillar.has-windows:before {
+      left: -120%;
+      top: -2px;
+      transform: skewY(1deg);
+      width: 120%; }
+    .pillar.has-windows .window {
+      top: 18px;
+      left: 22px; }
+      .pillar.has-windows .window:nth-child(1) {
+        background: #fff;
+        left: -78%; }
+      .pillar.has-windows .window:nth-child(2) {
+        background: #F27031; }
+    .pillar.has-windows .is-support {
+      width: 95%; }
+      .pillar.has-windows .is-support:before {
+        width: 150%;
+        left: -150%; }
+
+.clock-tower {
+  width: 600px;
+  height: 450px;
+  border: 1px solid;
+  perspective: 1000px;
+  margin: 0 auto; }
+
+.door {
+  width: 60%;
+  height: 80px; }
+  .door:before {
+    content: ' ';
+    width: 100%;
+    border-radius: 50%;
+    background: inherit;
+    height: 44px;
+    display: block;
+    top: -25%;
+    position: relative; }
+
+.strokes {
+  bottom: 115px;
+  position: absolute;
+  left: -72%; }
+  .strokes, .strokes:before, .strokes:after {
+    background: #A03F2C;
+    border-radius: 10px;
+    display: block;
+    height: 48%;
+    width: 5px;
+    transform-origin: bottom center; }
+  .strokes:before, .strokes:after {
+    content: ' ';
+    height: 110%;
+    position: absolute; }
+  .strokes:before {
+    left: -30px; }
+  .strokes:after {
+    left: 30px; }
+
+.window {
+  border-radius: 50%;
+  position: absolute;
+  width: 30px;
+  height: 30px; }
+
+.dome {
+  width: 30px;
+  height: 30px;
+  background: inherit;
+  border-radius: 50%; }
+
+.ground {
+  background: #5A5C5E;
+  border-radius: 2px;
+  height: 20px;
+  margin: 0 auto;
+  position: relative;
+  width: 80%;
+  top: -10px; }
+
+/*# sourceMappingURL=clock-tower.css.map */
